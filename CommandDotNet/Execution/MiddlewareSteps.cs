@@ -36,10 +36,16 @@
             public static readonly int Order = 0;
         }
 
-        public static class TypoSuggest
+        public static class AutoSuggest
         {
             public static readonly MiddlewareStages Stage = MiddlewareStages.ParseInput;
             public static readonly int Order = ParseInput.Order + 100;
+        }
+
+        public static class TypoSuggest
+        {
+            public static readonly MiddlewareStages Stage = MiddlewareStages.ParseInput;
+            public static readonly int Order = AutoSuggest.Order + 100;
         }
 
         public static class AssembleInvocationPipeline

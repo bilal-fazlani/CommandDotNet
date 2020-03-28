@@ -34,6 +34,11 @@ namespace CommandDotNet
             writer.Write(Environment.NewLine);
         }
 
+        public static void WriteLine(this IStandardStreamWriter writer, object value)
+        {
+            writer.WriteLine(value?.ToString());
+        }
+
         public static void WriteLine(this IStandardStreamWriter writer, string value)
         {
             if (writer == null)

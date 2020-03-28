@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using CommandDotNet.TestTools.Scenarios;
-using CommandDotNet.TypeDescriptors;
 using Xunit;
 using Xunit.Abstractions;
 

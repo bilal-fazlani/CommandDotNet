@@ -75,9 +75,10 @@ namespace CommandDotNet
         }
 
         /// <summary>Piped input will be appended to an operand list if one exists for the command</summary>
-        public static AppRunner AppendPipedInputToOperandList(this AppRunner appRunner)
+        public static AppRunner AppendPipedInputToOperandList(this AppRunner appRunner,
+            bool enablePipingToOptions = false, string targetIndicator = "%1")
         {
-            return PipedInputMiddleware.AppendPipedInputToOperandList(appRunner);
+            return PipedInputMiddleware.AppendPipedInputToOperandList(appRunner, enablePipingToOptions, targetIndicator);
         }
 
         /// <summary>Use the <see cref="IDependencyResolver"/> to create the command classes.</summary>

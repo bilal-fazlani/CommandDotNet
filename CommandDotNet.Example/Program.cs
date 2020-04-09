@@ -16,7 +16,8 @@ namespace CommandDotNet.Example
             var appSettings = new NameValueCollection{{ "notify.--retry-count", "2"}};
 
             return new AppRunner<Examples>()
-                .UseDefaultMiddleware()
+                .UseDefaultMiddleware(excludeAppendPipedInputToOperandList: true)
+                .AppendPipedInputToOperandList(true)
                 .UseLog2ConsoleDirective()
                 .UseNameCasing(Case.KebabCase)
                 .UseFluentValidation()

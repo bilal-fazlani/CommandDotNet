@@ -13,16 +13,53 @@ namespace CommandDotNet.Parsing
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
-        internal static AppRunner AppendPipedInputToOperandList(AppRunner appRunner)
+        internal static AppRunner AppendPipedInputToOperandList(AppRunner appRunner, 
+            bool enablePipingToOptions = false, string targetIndicator = "%piped%")
         {
             // -1 to ensure this middleware runs before any prompting so the value won't appear null
-            return appRunner.Configure(c => c.UseMiddleware(InjectPipedInputToOperandList, 
-                MiddlewareSteps.PipedInput.Stage, MiddlewareSteps.PipedInput.Order));
+            return appRunner.Configure(c =>
+            {
+                c.Services.Add(new Config(enablePipingToOptions, targetIndicator));
+                c.UseMiddleware(InjectPipedInputToOperandList,
+                    MiddlewareSteps.PipedInput.Stage, MiddlewareSteps.PipedInput.Order);
+            });
+        }
+
+        private class Config
+        {
+            public readonly bool EnablePipingToOptions;
+            public readonly string TargetIndicator;
+
+            public Config(bool enablePipingToOptions, string targetIndicator)
+            {
+                EnablePipingToOptions = enablePipingToOptions;
+                TargetIndicator = targetIndicator;
+            }
         }
 
         private static Task<int> InjectPipedInputToOperandList(CommandContext ctx, ExecutionDelegate next)
         {
             if (ctx.Console.IsInputRedirected)
+            {
+                AssignPipedInput(ctx);
+            }
+
+            return next(ctx);
+        }
+
+        private static void AssignPipedInput(CommandContext ctx)
+        {
+            var config = ctx.AppConfig.Services.Get<Config>();
+            var command = ctx.ParseResult.TargetCommand;
+
+            IArgument pipeTarget = null;
+
+            if (config.EnablePipingToOptions)
+            {
+                pipeTarget = GetTargetOption(command, config);
+            }
+
+            if (pipeTarget == null)
             {
                 // supporting only the list operand for a command gives us a few benefits
                 // 1. there can be only one list operand per command.
@@ -36,21 +73,64 @@ namespace CommandDotNet.Parsing
                 // 4. piped values can be merged with args passed to the command.
                 //    this can become an option passed into appBuilder.EnablePipedInput(...)
                 //    if a need arises to throw instead of merge
-                var operand = ctx.ParseResult.TargetCommand.Operands
-                    .FirstOrDefault(o => o.Arity.AllowsMany());
 
-                if (operand == null)
-                {
-                    Log.DebugFormat("No list operands found for {0}", ctx.ParseResult.TargetCommand.Name);
-                }
-                else
-                {
-                    Log.DebugFormat("Piping input to {0}.{1}", ctx.ParseResult.TargetCommand.Name, operand.Name);
-                    operand.InputValues.Add(new InputValue(Constants.InputValueSources.Piped, true, GetPipedInput(ctx.Console)));
-                }
+                pipeTarget = command.Operands.FirstOrDefault(o => o.Arity.AllowsMany());
             }
 
-            return next(ctx);
+
+            if (pipeTarget == null)
+            {
+                Log.DebugFormat($"No list operands or list options with value `{config.TargetIndicator}` found for {0}",
+                    command.Name);
+            }
+            else
+            {
+                Log.DebugFormat("Piping input to {0}.{1}", command.Name, pipeTarget.Name);
+                pipeTarget.InputValues.Add(
+                    new InputValue(Constants.InputValueSources.Piped, true, GetPipedInput(ctx.Console)));
+            }
+        }
+
+        private static IArgument GetTargetOption(Command command, Config config)
+        {
+            /* test
+                   - only one option can have indicator
+                   - indicator can be changed
+                   - option has piped values *appended*
+                 */
+            var options = command
+                .AllOptions(includeInterceptorOptions: true)
+                .Where(o => o.Arity.AllowsMany()
+                            && o.InputValues.Any(iv =>
+                                iv.Source == Constants.InputValueSources.Argument
+                                && iv.Values.Any(v => v == config.TargetIndicator)))
+                .ToList();
+
+            if (options.Count > 1)
+            {
+                // TODO: clear exception for user
+                throw new Exception();
+            }
+
+            if (options.Count == 0)
+            {
+                return null;
+            }
+
+            var pipeTarget = options.Single();
+
+            var inputValue = pipeTarget.InputValues
+                .First(iv => iv.Source == Constants.InputValueSources.Argument);
+            if (inputValue.Values.Count() == 1)
+            {
+                pipeTarget.InputValues.Remove(inputValue);
+            }
+            else
+            {
+                inputValue.Values = inputValue.Values.Where(v => v != config.TargetIndicator).ToList();
+            }
+
+            return pipeTarget;
         }
 
         public static IEnumerable<string> GetPipedInput(IConsole console)

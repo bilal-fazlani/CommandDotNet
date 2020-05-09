@@ -1,30 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CommandDotNet.Extensions;
 using CommandDotNet.Tokens;
 
 namespace CommandDotNet.TestTools
 {
     public static class StringExtensions
     {
-        /// <summary>
-        /// Trims white space from all lines to ensure consistent results for test assertions.<br/>
-        /// This is to deal with whitespace padding when some lines don't need all elements.
-        /// </summary>
-        public static string NormalizeLineEndings(this string text)
-        {
-            // split text and trim white space from all lines
-            var lines = text
-                .SplitIntoLines()
-                .Select(l => l.TrimEnd());
-
-            // join with a consistent line ending
-            var result = string.Join(Environment.NewLine, lines);
-
-            // trim extra empty line endings so tests are easier to write with less wasted space.
-            return result.TrimEnd(Environment.NewLine.ToCharArray());
-        }
-
         /// <summary>Split the arguments using <see cref="CommandLineStringSplitter"/></summary>
         public static string[] SplitArgs(this string args)
         {
@@ -33,10 +16,11 @@ namespace CommandDotNet.TestTools
                 : CommandLineStringSplitter.Instance.Split(args).ToArray();
         }
 
-        public static IEnumerable<ConsoleKeyInfo> ToConsoleKeyInfos(this string text)
+        public static IEnumerable<ConsoleKeyInfo> ToConsoleKeyInfos(this string? text)
         {
             // "\r\n" would result in two ConsoleKey.Enter
-            return text.Replace("\r\n", "\r").Select(ToConsoleKeyInfo);
+            return text?.Replace("\r\n", "\r").Select(ToConsoleKeyInfo) 
+                   ?? EmptyCollection<ConsoleKeyInfo>.Instance;
         }
 
         public static ConsoleKeyInfo ToConsoleKeyInfo(this char c)
@@ -44,6 +28,20 @@ namespace CommandDotNet.TestTools
             return new ConsoleKeyInfo(c, c.ToConsoleKey(), false, false, false);
         }
 
+        /// <summary>
+        /// Convert the char to a <see cref="ConsoleKey"/>.
+        /// Defaults to <see cref="ConsoleKey.Oem1"/> if a key is not found<br/>
+        /// This is does not an exhaustive list of special cases.<br/>
+        /// ' ' <see cref="ConsoleKey.Spacebar"/><br/>
+        /// '+' <see cref="ConsoleKey.Add"/><br/>
+        /// '-' <see cref="ConsoleKey.Subtract"/><br/>
+        /// '*' <see cref="ConsoleKey.Multiply"/><br/>
+        /// '/' <see cref="ConsoleKey.Divide"/><br/>
+        /// '\b' <see cref="ConsoleKey.Backspace"/><br/>
+        /// '\t' <see cref="ConsoleKey.Tab"/><br/>
+        /// '\n' <see cref="ConsoleKey.Enter"/><br/>
+        /// '\r' <see cref="ConsoleKey.Enter"/><br/>
+        /// </summary>
         public static ConsoleKey ToConsoleKey(this char c)
         {
             switch (c)
@@ -79,6 +77,6 @@ namespace CommandDotNet.TestTools
             (T) Enum.Parse(typeof(T), text, ignoreCase);
 
         internal static bool TryParseEnum<T>(this string text, out T result, bool ignoreCase = false) where T : struct =>
-            Enum.TryParse<T>(text, ignoreCase, out result);
+            Enum.TryParse(text, ignoreCase, out result);
     }
 }

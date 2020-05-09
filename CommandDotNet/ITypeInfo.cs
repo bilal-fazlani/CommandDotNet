@@ -16,6 +16,6 @@ namespace CommandDotNet
         Type UnderlyingType { get; }
 
         /// <summary>The DisplayName as determined by the <see cref="IArgumentTypeDescriptor"/> for this type</summary>
-        string DisplayName { get; set; }
+        string? DisplayName { get; set; }
     }
 }

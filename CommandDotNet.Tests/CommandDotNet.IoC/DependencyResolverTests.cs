@@ -8,19 +8,19 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
 {
     public class DependencyResolverTests
     {
-        private IDependencyResolver _resolver = new TestDependencyResolver {new Password("lala")};
+        private readonly IDependencyResolver _resolver = new TestDependencyResolver {new Password("lala")};
 
         [Fact]
         public void GenericResolve_GivenRegisteredType_ReturnsInstance()
         {
-            _resolver.Resolve<Password>().GetPassword().Should().Be("lala");
+            _resolver.Resolve<Password>()!.GetPassword().Should().Be("lala");
         }
 
         [Fact]
         public void GenericTryResolve_GivenRegisteredType_ReturnsTrueAndInstance()
         {
             _resolver.TryResolve<Password>(out var password).Should().BeTrue();
-            password.GetPassword().Should().Be("lala");
+            password!.GetPassword().Should().Be("lala");
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
         [Fact]
         public void GenericResolveOrDefault_GivenRegisteredType_ReturnsInstance()
         {
-            _resolver.ResolveOrDefault<Password>().GetPassword().Should().Be("lala");
+            _resolver.ResolveOrDefault<Password>()!.GetPassword().Should().Be("lala");
         }
 
         [Fact]

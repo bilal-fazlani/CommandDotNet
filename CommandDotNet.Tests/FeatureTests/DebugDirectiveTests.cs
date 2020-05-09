@@ -1,30 +1,32 @@
 using System.Diagnostics;
+using CommandDotNet.Diagnostics;
 using CommandDotNet.TestTools.Scenarios;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CommandDotNet.Tests.FeatureTests
 {
-    public class DebugDirectiveTests : TestBase
+    public class DebugDirectiveTests
     {
-        public DebugDirectiveTests(ITestOutputHelper output) : base(output)
+        public DebugDirectiveTests(ITestOutputHelper output)
         {
+            Ambient.Output = output;
             // skip waiting for debugger to connect
-            Directives.DebugDirective.InTestHarness = true;
+            DebugDirective.InTestHarness = true;
         }
 
         [Fact]
         public void Directives_CanBeDisabled()
         {
-            new AppRunner<App>(TestAppSettings.TestDefault.Clone(s => s.DisableDirectives = true))
-                .VerifyScenario(TestOutputHelper,
+            new AppRunner<App>(new AppSettings {DisableDirectives = true})
+                .Verify(
                     new Scenario
                     {
-                        WhenArgs = "[debug] Do",
+                        When = {Args = "[debug] Do"},
                         Then =
                         {
                             ExitCode = 1, // method should have been called
-                            ResultsContainsTexts = { "Unrecognized command or argument '[debug]'" }
+                            OutputContainsTexts = { "Unrecognized command or argument '[debug]'" }
                         }
                     });
         }
@@ -35,19 +37,19 @@ namespace CommandDotNet.Tests.FeatureTests
             var processId = Process.GetCurrentProcess().Id;
             new AppRunner<App>()
                 .UseDebugDirective()
-                .VerifyScenario(TestOutputHelper,
+                .Verify(
                     new Scenario
                     {
-                        WhenArgs = "[debug] Do",
+                        When = {Args = "[debug] Do"},
                         Then =
                         {
                             ExitCode = 5, // method should have been called
-                            ResultsContainsTexts = {$"Attach your debugger to process {processId} (dotnet)."}
+                            OutputContainsTexts = {$"Attach your debugger to process {processId} (dotnet)."}
                         }
                     });
         }
 
-        public class App
+        private class App
         {
             public int Do()
             {

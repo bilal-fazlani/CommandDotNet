@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using CommandDotNet.Rendering;
+using static System.Environment;
 
 namespace CommandDotNet
 {
@@ -31,15 +32,20 @@ namespace CommandDotNet
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            writer.Write(Environment.NewLine);
+            writer.Write(NewLine);
         }
 
-        public static void WriteLine(this IStandardStreamWriter writer, object value)
+        public static void WriteLine(this IStandardStreamWriter writer, object? value)
         {
-            writer.WriteLine(value?.ToString());
+            WriteLine(writer, value?.ToString());
         }
 
-        public static void WriteLine(this IStandardStreamWriter writer, string value)
+        public static void WriteLine(this IStandardStreamWriter writer, string? value)
+        {
+            writer.WriteLine(value, avoidExtraNewLine: false);
+        }
+
+        internal static void WriteLine(this IStandardStreamWriter writer, string? value, bool avoidExtraNewLine)
         {
             if (writer == null)
             {
@@ -47,19 +53,27 @@ namespace CommandDotNet
             }
 
             writer.Write(value);
-            writer.Write(Environment.NewLine);
+            if (!avoidExtraNewLine || (!value?.EndsWith(NewLine) ?? false))
+            {
+                writer.Write(NewLine);
+            }
+        }
+
+        public static void Write(this IStandardStreamWriter writer, object? value)
+        {
+            writer.Write(value?.ToString());
         }
 
         private class AnonymousStandardStreamWriter : IStandardStreamWriter
         {
-            private readonly Action<string> _write;
+            private readonly Action<string?> _write;
 
-            public AnonymousStandardStreamWriter(Action<string> write)
+            public AnonymousStandardStreamWriter(Action<string?> write)
             {
                 _write = write;
             }
 
-            public void Write(string value)
+            public void Write(string? value)
             {
                 _write(value);
             }

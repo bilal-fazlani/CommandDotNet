@@ -36,7 +36,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandDotNet.IoC.Autofac",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandDotNet.IoC.SimpleInjector", "CommandDotNet.IoC.SimpleInjector\CommandDotNet.IoC.SimpleInjector.csproj", "{A63D75B2-4CC5-4D6E-A36C-6BCFDB0B577F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandDotNet.CommandLogger", "CommandDotNet.CommandLogger\CommandDotNet.CommandLogger.csproj", "{44F29A67-9AEA-41E7-949F-5FB788820819}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandDotNet.Example.Tests", "CommandDotNet.Example.Tests\CommandDotNet.Example.Tests.csproj", "{99D43EE7-8FEB-4507-A75E-D6C096C1E9D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,10 +84,10 @@ Global
 		{A63D75B2-4CC5-4D6E-A36C-6BCFDB0B577F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A63D75B2-4CC5-4D6E-A36C-6BCFDB0B577F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A63D75B2-4CC5-4D6E-A36C-6BCFDB0B577F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{44F29A67-9AEA-41E7-949F-5FB788820819}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{44F29A67-9AEA-41E7-949F-5FB788820819}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{44F29A67-9AEA-41E7-949F-5FB788820819}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{44F29A67-9AEA-41E7-949F-5FB788820819}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99D43EE7-8FEB-4507-A75E-D6C096C1E9D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99D43EE7-8FEB-4507-A75E-D6C096C1E9D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99D43EE7-8FEB-4507-A75E-D6C096C1E9D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99D43EE7-8FEB-4507-A75E-D6C096C1E9D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

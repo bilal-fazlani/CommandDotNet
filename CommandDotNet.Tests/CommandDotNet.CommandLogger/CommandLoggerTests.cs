@@ -1,7 +1,8 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using CommandDotNet.CommandLogger;
+using CommandDotNet.Execution;
+using Diag=CommandDotNet.Diagnostics;
 using CommandDotNet.TestTools.Scenarios;
 using FluentAssertions;
 using Xunit;
@@ -11,27 +12,25 @@ namespace CommandDotNet.Tests.CommandDotNet.CommandLogger
 {
     public class CommandLoggerTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public CommandLoggerTests(ITestOutputHelper testOutputHelper)
+        public CommandLoggerTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
 
         [Fact]
         public void PasswordsAreObscured()
         {
             new AppRunner<App>()
-                .UseCommandLogger()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .UseCommandLogger(excludeSystemInfo: true)
+                .Verify(new Scenario
                 {
-                    WhenArgs = "--password super-secret Do lala",
+                    When = {Args = "[cmdlog] --password super-secret Do lala"},
                     Then =
                     {
-                        Result = $@"
+                        Output = @"
 ***************************************
 Original input:
-  --password ***** Do lala
+  [cmdlog] --password ***** Do lala
 
 command: Do
 
@@ -53,25 +52,26 @@ options:
     value: *****
     inputs: ***** (from: --password *****)
     default:
-***************************************"
+***************************************
+"
                     }
                 });
         }
 
         [Fact]
-        public void SystemInfo_CanBe_Shown()
+        public void SystemInfo_IsShown_ByDefault()
         {
             new AppRunner<App>()
-                .UseCommandLogger(includeSystemInfo: true)
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .UseCommandLogger()
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do",
+                    When = {Args = "[cmdlog] Do"},
                     Then =
                     {
-                        Result = $@"
+                        Output = $@"
 ***************************************
 Original input:
-  Do
+  [cmdlog] Do
 
 command: Do
 
@@ -99,7 +99,8 @@ Tool version  = testhost.dll 16.2.0
 OS version    = {System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim()}
 Machine       = {Environment.MachineName}
 Username      = {Environment.UserDomainName}\{Environment.UserName}
-***************************************"
+***************************************
+"
                     }
                 });
         }
@@ -107,39 +108,9 @@ Username      = {Environment.UserDomainName}\{Environment.UserName}
         [Fact]
         public void AppConfig_CanBe_Shown()
         {
-            new AppRunner<App>()
-                .UseCommandLogger(includeAppConfig:true)
-                .VerifyScenario(_testOutputHelper, new Scenario
-                {
-                    WhenArgs = "Do",
-                    Then =
-                    {
-                        Result = $@"
-***************************************
-Original input:
-  Do
+            #region example AppConfig output
 
-command: Do
-
-arguments:
-
-  textOperand <Text>
-    value:
-    inputs:
-    default:
-
-options:
-
-  textOption <Text>
-    value:
-    inputs:
-    default:
-
-  password <Text>
-    value:
-    inputs:
-    default:
-
+            /*
 AppConfig:
   AppSettings:
     ArgumentTypeDescriptors: ArgumentTypeDescriptors:
@@ -172,6 +143,7 @@ AppConfig:
     expand-clubbed-flags(2147483647)
     split-option-assignments(2147483647)
   MiddlewarePipeline:
+    <>c__DisplayClass0_0.<CaptureState>b__1
     TokenizerPipeline.TokenizeInputMiddleware
     ClassModelingMiddleware.CreateRootCommand
     CommandParser.ParseInputMiddleware
@@ -186,7 +158,27 @@ AppConfig:
     CommandDotNet.CommandContext
     CommandDotNet.Rendering.IConsole
     System.Threading.CancellationToken
-***************************************"
+             */
+
+            #endregion
+
+            new AppRunner<App>()
+                .UseCommandLogger(excludeSystemInfo: true, includeAppConfig: true)
+                .Verify(new Scenario
+                {
+                    When = {Args = "[cmdlog] Do"},
+                    Then =
+                    {
+                        OutputContainsTexts =
+                        {
+                            "AppConfig:",
+                            "  AppSettings:",
+                            "  DependencyResolver:",
+                            "  HelpProvider:",
+                            "  TokenTransformations:",
+                            "  MiddlewarePipeline:",
+                            "  ParameterResolvers:"
+                        }
                     }
                 });
         }
@@ -195,16 +187,16 @@ AppConfig:
         public void AdditionalInfo_CanBe_Null()
         {
             new AppRunner<App>()
-                .UseCommandLogger(additionalInfoCallback: ctx => null)
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .UseCommandLogger(excludeSystemInfo: true, additionalInfoCallback: ctx => null)
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do",
+                    When = {Args = "[cmdlog] Do"},
                     Then =
                     {
-                        Result = $@"
+                        Output = @"
 ***************************************
 Original input:
-  Do
+  [cmdlog] Do
 
 command: Do
 
@@ -226,7 +218,8 @@ options:
     value:
     inputs:
     default:
-***************************************"
+***************************************
+"
                     }
                 });
         }
@@ -235,21 +228,20 @@ options:
         public void AdditionalInfo_CanBe_Shown()
         {
             new AppRunner<App>()
-                .UseCommandLogger(additionalInfoCallback: ctx => new (string, string)[]
+                .UseCommandLogger(excludeSystemInfo: true, additionalInfoCallback: ctx => new[]
                 {
-                    ("header1", "value1" ),
-                    ("header2", "value2" ),
-
+                    ("header1", "value1"),
+                    ("header2", "value2")
                 })
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do",
+                    When = {Args = "[cmdlog] Do"},
                     Then =
                     {
-                        Result = $@"
+                        Output = @"
 ***************************************
 Original input:
-  Do
+  [cmdlog] Do
 
 command: Do
 
@@ -274,7 +266,8 @@ options:
 
 header1  = value1
 header2  = value2
-***************************************"
+***************************************
+"
                     }
                 });
         }
@@ -285,13 +278,13 @@ header2  = value2
             var sb = new StringBuilder();
 
             new AppRunner<App>()
-                .UseCommandLogger(writerFactory: context => null)
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .UseCommandLogger(excludeSystemInfo: true, writerFactory: context => null)
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do",
+                    When = {Args = "Do"},
                     Then =
                     {
-                        Result = ""
+                        Output = ""
                     }
                 });
         }
@@ -302,13 +295,13 @@ header2  = value2
             var sb = new StringBuilder();
 
             new AppRunner<App>()
-                .UseCommandLogger(writerFactory: context => text => sb.Append(text))
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .UseCommandLogger(excludeSystemInfo: true, writerFactory: context => text => sb.AppendLine(text))
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do",
+                    When = {Args = "Do"},
                     Then =
                     {
-                        Result = ""
+                        Output = ""
                     }
                 });
 
@@ -322,23 +315,74 @@ command: Do
 arguments:
 
   textOperand <Text>
-    value: 
+    value:
     inputs:
     default:
 
 options:
 
   textOption <Text>
-    value: 
+    value:
     inputs:
     default:
 
   password <Text>
-    value: 
+    value:
     inputs:
     default:
 ***************************************
 ");
+        }
+
+        [Fact]
+        public void DefaultBehavior_DoesOutput_With_CmdLogDirective()
+        {
+            new AppRunner<App>()
+                .UseCommandLogger()
+                .Verify(new Scenario
+                {
+                    When = {Args = "[cmdlog] Do"},
+                    Then = {OutputContainsTexts = {"Original input:"}}
+                });
+        }
+
+        [Fact]
+        public void DefaultBehavior_DoesNotOutput_Without_CmdLogDirective()
+        {
+            new AppRunner<App>()
+                .UseCommandLogger()
+                .Verify(new Scenario
+                {
+                    When = {Args = "Do"},
+                    Then = {Output = ""}
+                });
+        }
+
+        [Fact]
+        public void CommandLogger_Log_CanBeCalled_BeforeParseResults()
+        {
+            // this supports printing the CommandLogger in error handling.
+
+            new AppRunner<App>()
+                .UseCommandLogger(excludeSystemInfo: true, additionalInfoCallback: ctx => new[]
+                {
+                    ("header1", "value1"),
+                    ("header2", "value2")
+                })
+                .Configure(c => c.UseMiddleware((context, next) =>
+                {
+                    Diag.CommandLogger.Log(context, context.Console.Out.WriteLine);
+                    return ExitCodes.Success;
+                }, MiddlewareStages.PostTokenizePreParseInput))
+                .Verify(new Scenario
+                {
+                    When = {Args = "Do"},
+                    Then =
+                    {
+                        AssertOutput = o => { o.Should().ContainAll("header1", "value1", "header2", "value2"); }
+                    }
+                });
+
         }
 
         public class App

@@ -52,7 +52,8 @@ namespace CommandDotNet
             var type = argument.TypeInfo.Type;
             var defaultValue = argument.Default?.Value;
             var hasDefaultValue = defaultValue != null && !defaultValue.IsDefaultFor(type);
-            return Default(type, hasDefaultValue, argument.Services.Get<BooleanMode>());
+            var booleanMode = argument.Services.GetOrAdd(() => new Box<BooleanMode>(BooleanMode.Unknown)).Value;
+            return Default(type, hasDefaultValue, booleanMode);
         }
 
         /// <summary>Returns the default IArgumentArity for the given type</summary>
@@ -94,7 +95,7 @@ namespace CommandDotNet
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }

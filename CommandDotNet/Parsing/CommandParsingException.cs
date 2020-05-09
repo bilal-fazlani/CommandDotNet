@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using CommandDotNet.Tokens;
 
 namespace CommandDotNet.Parsing
 {
@@ -10,13 +9,10 @@ namespace CommandDotNet.Parsing
     {
         public Command Command { get; }
 
-        public Token UnrecognizedArgument { get; }
-
-        public CommandParsingException(Command command, string message, Token unrecognizedArgument = null)
+        public CommandParsingException(Command command, string message)
             : base(message)
         {
             Command = command;
-            UnrecognizedArgument = unrecognizedArgument;
         }
     }
 }

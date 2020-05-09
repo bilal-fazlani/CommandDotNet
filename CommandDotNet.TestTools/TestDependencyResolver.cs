@@ -10,9 +10,9 @@ namespace CommandDotNet.TestTools
     /// </summary>
     public class TestDependencyResolver : IDependencyResolver, IEnumerable<object>
     {
-        private readonly Dictionary<Type, object> _services = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object?> _services = new Dictionary<Type, object?>();
 
-        public object Resolve(Type type)
+        public object? Resolve(Type type)
         {
             if (!_services.ContainsKey(type))
             {
@@ -21,7 +21,7 @@ namespace CommandDotNet.TestTools
             return _services[type];
         }
 
-        public bool TryResolve(Type type, out object item)
+        public bool TryResolve(Type type, out object? item)
         {
             return _services.TryGetValue(type, out item);
         }
@@ -32,12 +32,12 @@ namespace CommandDotNet.TestTools
             _services.Add(service.GetType(), service);
         }
 
-        public void Add<T>(T service)
+        public void Add<T>(T? service) where T: class
         {
             _services.Add(typeof(T), service);
         }
 
-        public void AddOrUpdate<T>(T service)
+        public void AddOrUpdate<T>(T? service) where T : class
         {
             _services[typeof(T)] = service;
         }

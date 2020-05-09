@@ -157,11 +157,11 @@ public static class CommandHooksMiddlware
     {
         return appRunner.Configure(c =>
             c.UseMiddleware(
-                (ctx, next) => Middleware(ctx, next, beforeCommandRun, afterCommandRun, onError, onFinally), 
+                (ctx, next) => CommandHooks(ctx, next, beforeCommandRun, afterCommandRun, onError, onFinally), 
                 MiddlewareStages.PostBindValuesPreInvoke));
     }
 
-    private static Task<int> Middleware(
+    private static Task<int> CommandHooks(
         CommandContext commandContext, ExecutionDelegate next, 
         Action beforeCommandRun, Action afterCommandRun, Action<Exception> onError, Action onFinally)
     {

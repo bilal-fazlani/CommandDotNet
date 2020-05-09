@@ -13,38 +13,30 @@ namespace CommandDotNet.Prompts
 
         internal static AppRunner UsePrompting(
             AppRunner appRunner,
-            Func<CommandContext, IPrompter> prompterOverride = null,
+            Func<CommandContext, IPrompter>? prompterOverride = null,
             bool promptForMissingArguments = true,
-            Func<CommandContext, IArgument, string> argumentPromptTextOverride = null,
-            Predicate<IArgument> argumentFilter = null)
+            Func<CommandContext, IArgument, string>? argumentPromptTextOverride = null,
+            Predicate<IArgument>? argumentFilter = null)
         {
             return appRunner.Configure(c =>
             {
-
-                prompterOverride = prompterOverride
-                                   ?? c.Services.Get<Func<CommandContext, IPrompter>>()
-                                   ?? (ctx =>
-                                   {
-                                       // create only one prompter per CommandContext
-                                       // in theory, an implementation could track prompts and values
-                                       var prompter = ctx.Services.Get<IPrompter>();
-                                       if(prompter == null)
-                                       {
-                                           prompter = new Prompter(ctx.Console);
-                                           ctx.Services.AddOrUpdate(prompter);
-                                       }
-                                       return prompter;
-                                   });
+                prompterOverride ??= c.Services.GetOrDefault<Func<CommandContext, IPrompter>>()
+                                     ?? (ctx =>
+                                     {
+                                         // create only one prompter per CommandContext
+                                         // in theory, an implementation could track prompts and values
+                                         return ctx.Services.GetOrAdd<IPrompter>(() => new Prompter(ctx.Console));
+                                     });
 
                 c.UseParameterResolver(ctx => prompterOverride(ctx));
 
                 if (promptForMissingArguments)
                 {
-                    argumentFilter = argumentFilter ?? (a => a.Arity.RequiresAtLeastOne()); 
+                    argumentFilter ??= a => a.Arity.RequiresAtLeastOne(); 
                     c.UseMiddleware(
                         (ctx, next) => PromptForMissingArguments(ctx, next,
                             new ArgumentPrompter(prompterOverride(ctx), argumentPromptTextOverride), argumentFilter), 
-                        MiddlewareSteps.ValuePromptMissingArguments.Stage, MiddlewareSteps.ValuePromptMissingArguments.Order);
+                        MiddlewareSteps.ValuePromptMissingArguments);
                 }
             });
         }
@@ -64,7 +56,7 @@ namespace CommandDotNet.Prompts
                 return next(commandContext);
             }
 
-            if (parseResult.HelpWasRequested())
+            if (parseResult!.HelpWasRequested())
             {
                 Log.Debug("Skipping prompts. Help was requested.");
                 return next(commandContext);
@@ -74,13 +66,13 @@ namespace CommandDotNet.Prompts
 
             parseResult.TargetCommand
                 .AllArguments(includeInterceptorOptions: true)
-                .Where(a => a.SwitchFunc(
+                .Where(a => a.SwitchFuncStruct(
                     operand => true,
                     option => !option.Arity.AllowsNone() // exclude flag options: help, version, ...
                 ))
                 .Where(a => argumentFilter == null || argumentFilter(a))
                 .Where(a => a.InputValues.IsEmpty() && (a.Default?.Value.IsNullValue() ?? true))
-                .TakeWhile(a => !commandContext.AppConfig.CancellationToken.IsCancellationRequested && !isCancellationRequested)
+                .TakeWhile(a => !commandContext.CancellationToken.IsCancellationRequested && !isCancellationRequested)
                 .ForEach(a =>
                 {
                     Log.Debug($"Prompting for {a.Name}");
@@ -90,7 +82,7 @@ namespace CommandDotNet.Prompts
 
             if (isCancellationRequested)
             {
-                return Task.FromResult(0);
+                return ExitCodes.Success;
             }
 
             return next(commandContext);

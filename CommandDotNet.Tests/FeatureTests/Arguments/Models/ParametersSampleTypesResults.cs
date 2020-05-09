@@ -8,15 +8,15 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments.Models
     public class ParametersSampleTypesResults : ISampleTypesArgumentsModel
     {
         public bool BoolArg { get; set; }
-        public string StringArg { get; set; }
+        public string? StringArg { get; set; }
         public int StructArg { get; set; }
         public int? StructNArg { get; set; }
         public DayOfWeek EnumArg { get; set; }
-        public Uri ObjectArg { get; set; }
-        public List<string> StringListArg { get; set; }
-        public List<int> StructListArg { get; set; }
-        public List<DayOfWeek> EnumListArg { get; set; }
-        public List<Uri> ObjectListArg { get; set; }
+        public Uri? ObjectArg { get; set; }
+        public List<string>? StringListArg { get; set; }
+        public List<int>? StructListArg { get; set; }
+        public List<DayOfWeek>? EnumListArg { get; set; }
+        public List<Uri>? ObjectListArg { get; set; }
 
         public ParametersSampleTypesResults()
         {

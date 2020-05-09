@@ -23,20 +23,20 @@ namespace CommandDotNet.Parsing
             return appRunner.Configure(c =>
             {
                 c.UseMiddleware(AutoSuggestDirective, 
-                    MiddlewareSteps.AutoSuggest.Stage, MiddlewareSteps.AutoSuggest.Order);
+                    MiddlewareSteps.AutoSuggest.Directive);
                 c.UseMiddleware(RegisterWithDotNetSuggest,
-                    MiddlewareSteps.AutoSuggest.Stage, MiddlewareSteps.AutoSuggest.Order-1);
+                    MiddlewareSteps.AutoSuggest.RegisterWithDotNetSuggest);
             });
         }
         
         private static Task<int> AutoSuggestDirective(CommandContext ctx, ExecutionDelegate next)
         {
-            if (!ctx.Tokens.TryGetDirective("suggest", out string value))
+            if (!ctx.Tokens.TryGetDirective("suggest", out string? value))
             {
                 return next(ctx);
             }
 
-            var parts = value.Split(':');
+            var parts = value!.Split(':');
             int position = parts.Length == 1
                 ? 0
                 : int.Parse(parts[1]);
@@ -50,7 +50,7 @@ namespace CommandDotNet.Parsing
              */
 
 
-            if (ctx.ParseResult.ParseError == null)
+            if (ctx.ParseResult!.ParseError == null)
             {
                 // TODO: include suggestions from first operand
 
@@ -66,7 +66,7 @@ namespace CommandDotNet.Parsing
                 // ctx.ParseResult.TargetCommand.Operands.FirstOrDefault(o => o.Value == null);
 
                 var optionAliases = command.Options
-                    .Where(o => o.ShowInHelp)
+                    .Where(o => !o.Hidden)
                     .SelectMany(AddOptionPrefix)
                     .OrderBy(a => a);
 
@@ -78,13 +78,19 @@ namespace CommandDotNet.Parsing
                 return Task.FromResult(0);
             }
             
-            if(ctx.ParseResult.ParseError is CommandParsingException cpe
-               && cpe.UnrecognizedArgument != null)
+            switch (ctx.ParseResult.ParseError)
             {
-                // TODO: include suggestions from first operand
+                case UnrecognizedArgumentCommandParsingException unrecognizedArgument:
+                    // TODO: include suggestions from first operand
 
-                var command = cpe.Command;
-                var tokenType = cpe.UnrecognizedArgument.TokenType;
+                    var command = unrecognizedArgument.Command;
+                    var tokenType = unrecognizedArgument.Token.TokenType;
+                    break;
+                case UnrecognizedValueCommandParsingException unrecognizedValue:
+                    // TODO: include suggestions from the allowed values
+
+                    var allowedValues = unrecognizedValue.Argument.AllowedValues;
+                    break;
             }
 
             return Task.FromResult(1);
@@ -92,7 +98,7 @@ namespace CommandDotNet.Parsing
 
         private static Task<int> RegisterWithDotNetSuggest(CommandContext ctx, ExecutionDelegate next)
         {
-            if (ctx.Tokens.TryGetDirective("suggest", out string value))
+            if (ctx.Tokens.TryGetDirective("suggest", out string? value))
             {
                 // not needed if we're already here
                 return next(ctx);

@@ -4,7 +4,13 @@ namespace CommandDotNet.Extensions
 {
     internal class DisposableAction : IDisposable
     {
-        private readonly Action _action;
+        internal static DisposableAction Null { get; } = new DisposableAction();
+
+        private readonly Action? _action;
+
+        private DisposableAction()
+        {
+        }
 
         public DisposableAction(Action action)
         {
@@ -13,7 +19,7 @@ namespace CommandDotNet.Extensions
 
         public void Dispose()
         {
-            _action();
+            _action?.Invoke();
         }
     }
 }

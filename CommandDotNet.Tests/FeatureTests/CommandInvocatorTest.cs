@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CommandDotNet.Execution;
+using CommandDotNet.Tests.Utils;
 using CommandDotNet.TestTools;
 using FluentAssertions;
 using Xunit;
@@ -11,11 +12,9 @@ namespace CommandDotNet.Tests.FeatureTests
 {
     public class CommandInvokerTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public CommandInvokerTests(ITestOutputHelper testOutputHelper)
+        public CommandInvokerTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
 
         [Fact]
@@ -23,7 +22,7 @@ namespace CommandDotNet.Tests.FeatureTests
         {
             Task<int> BeforeInvocation(CommandContext context, ExecutionDelegate next)
             {
-                var values = context.InvocationPipeline.TargetCommand.Invocation.ParameterValues;
+                var values = context.InvocationPipeline.TargetCommand!.Invocation.ParameterValues;
                 values.Length.Should().Be(2);
                 var invokedCar = (Car) values[0];
                 var invokedOwner = (string)values[1];
@@ -39,8 +38,7 @@ namespace CommandDotNet.Tests.FeatureTests
             var result = RunInMem(1, "Jack", BeforeInvocation);
 
             result.ExitCode.Should().Be(5);
-            result.TestOutputs.Get<Car>().Number.Should().Be(2);
-            result.TestOutputs.Get<string>().Should().Be("Jill");
+            result.CommandContext.ParamValuesShouldBe(new Car { Number = 2 }, "Jill");
         }
 
         [Fact]
@@ -50,7 +48,7 @@ namespace CommandDotNet.Tests.FeatureTests
             {
                 var targetCommand = context.InvocationPipeline.TargetCommand;
 
-                var args = targetCommand.Invocation.Arguments;
+                var args = targetCommand!.Invocation.Arguments;
                 args.Count.Should().Be(2);
                 var carNumber = args.First();
                 var ownerName = args.Last();
@@ -71,8 +69,7 @@ namespace CommandDotNet.Tests.FeatureTests
             var result = RunInMem(1, "Jack", preBindValues: BeforeSetValues);
 
             result.ExitCode.Should().Be(5);
-            result.TestOutputs.Get<Car>().Number.Should().Be(1);
-            result.TestOutputs.Get<string>().Should().Be("Jill");
+            result.CommandContext.ParamValuesShouldBe(new Car{Number = 1}, "Jill");
         }
 
         [Fact]
@@ -80,7 +77,7 @@ namespace CommandDotNet.Tests.FeatureTests
         {
             Task<int> BeforeInvocation(CommandContext context, ExecutionDelegate next)
             {
-                context.ParseResult.TargetCommand.Should().NotBeNull();
+                context.ParseResult!.TargetCommand.Should().NotBeNull();
                 context.ParseResult.TargetCommand.Name.Should().Be(nameof(App.NotifyOwner));
                 return next(context);
             }
@@ -95,45 +92,59 @@ namespace CommandDotNet.Tests.FeatureTests
 
             Task<int> BeforeInvocation(CommandContext context, ExecutionDelegate next)
             {
-                var instance = context.InvocationPipeline.TargetCommand.Instance;
+                var instance = context.InvocationPipeline.TargetCommand!.Instance;
                 instance.Should().NotBeNull();
-                var app = (App)instance;
+                var app = (App)instance!;
 
-                app.TestOutputs.Capture(guid);
+                app.Guid = guid;
                 return next(context);
             }
 
             var result = RunInMem(1, "Jack", BeforeInvocation);
-            result.TestOutputs.Get<Guid>().Should().Be(guid);
+            var app2 = (App)result.CommandContext.GetCommandInvocationInfo().Instance!;
+            app2.Guid.Should().Be(guid);
+        }
+
+        [Fact]
+        public void CanReplaceInvocation()
+        {
+            TrackingInvocation? targetCommandInvocation = null;
+            Task<int> BeforeInvocation(CommandContext context, ExecutionDelegate next)
+            {
+                targetCommandInvocation = new TrackingInvocation(context.InvocationPipeline.TargetCommand!.Invocation);
+                context.InvocationPipeline.TargetCommand.Invocation = targetCommandInvocation;
+                return next(context);
+            }
+
+            var result = RunInMem(1, "Jack", BeforeInvocation);
+            targetCommandInvocation!.WasInvoked.Should().BeTrue();
         }
 
         private AppRunnerResult RunInMem(int carNumber, string ownerName, 
-            ExecutionMiddleware postBindValues = null, 
-            ExecutionMiddleware preBindValues = null)
+            ExecutionMiddleware? postBindValues = null, 
+            ExecutionMiddleware? preBindValues = null)
         {
             var appRunner = new AppRunner<App>();
 
             if (postBindValues != null)
             {
-                appRunner.Configure(c => c.UseMiddleware(postBindValues, MiddlewareStages.PostBindValuesPreInvoke, int.MaxValue));
+                appRunner.Configure(c => c.UseMiddleware(postBindValues, MiddlewareStages.PostBindValuesPreInvoke, short.MaxValue));
             }
             if (preBindValues != null)
             {
-                appRunner.Configure(c => c.UseMiddleware(preBindValues, MiddlewareStages.PostParseInputPreBindValues, int.MaxValue));
+                appRunner.Configure(c => c.UseMiddleware(preBindValues, MiddlewareStages.PostParseInputPreBindValues, short.MaxValue));
             }
 
             var args = $"NotifyOwner --Number {carNumber} --owner {ownerName}".SplitArgs();
-            return appRunner.RunInMem(args, _testOutputHelper);
+            return appRunner.RunInMem(args);
         }
         
-        public class App
+        private class App
         {
-            internal TestOutputs TestOutputs { get; set; }
+            public Guid Guid;
 
             public int NotifyOwner(Car car, [Option] string owner)
             {
-                TestOutputs.Capture(car);
-                TestOutputs.Capture(owner);
                 return 5;
             }
         }

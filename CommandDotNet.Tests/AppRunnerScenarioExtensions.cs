@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using CommandDotNet.TestTools;
 using CommandDotNet.TestTools.Scenarios;
-using Xunit.Abstractions;
 
 namespace CommandDotNet.Tests
 {
@@ -11,32 +10,25 @@ namespace CommandDotNet.Tests
         public static AppRunnerResult RunInMem(
             this AppRunner runner,
             string args,
-            ITestOutputHelper output,
-            Func<TestConsole, string> onReadLine = null,
-            IEnumerable<string> pipedInput = null)
+            Func<TestConsole, string>? onReadLine = null,
+            IEnumerable<string>? pipedInput = null)
         {
-            return runner.RunInMem(args.SplitArgs(), output?.AsLogger(), onReadLine, pipedInput);
+            return runner.RunInMem(args, Ambient.WriteLine, onReadLine, pipedInput);
         }
 
         public static AppRunnerResult RunInMem(
             this AppRunner runner,
             string[] args,
-            ITestOutputHelper output,
-            Func<TestConsole, string> onReadLine = null,
-            IEnumerable<string> pipedInput = null)
+            Func<TestConsole, string>? onReadLine = null,
+            IEnumerable<string>? pipedInput = null)
         {
-            return runner.RunInMem(args, output?.AsLogger(), onReadLine, pipedInput);
+            return runner.RunInMem(args, Ambient.WriteLine, onReadLine, pipedInput);
         }
 
-        public static AppRunnerResult VerifyScenario(this AppRunner appRunner, ITestOutputHelper output, IScenario scenario)
+        public static AppRunnerResult Verify(this AppRunner appRunner, IScenario scenario)
         {
-            return appRunner.VerifyScenario(output.AsLogger(), scenario);
+            // use Test.Default to force testing of TestConfig.GetDefaultFromSubClass()
+            return appRunner.Verify(Ambient.WriteLine, TestConfig.Default, scenario);
         }
-
-        public static ILogger AsLogger(this ITestOutputHelper testOutputHelper)
-        {
-            return new Logger(testOutputHelper.WriteLine);
-        }
-
     }
 }

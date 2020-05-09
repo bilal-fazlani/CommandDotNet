@@ -12,6 +12,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/bilal-fazlani/CommandDotNet.svg?style=for-the-badge)]()
 ![Travis (.com) branch](https://img.shields.io/travis/com/bilal-fazlani/commanddotnet/master?label=TRAVIS%20BUILD&style=for-the-badge)
 
+[![Gitter](https://img.shields.io/gitter/room/badges/shields.svg?style=for-the-badge)](https://gitter.im/CommandDotNet/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Discord](https://img.shields.io/discord/678568687556493322?label=Discord%20Chat&style=for-the-badge)](https://discord.gg/QFxKSeG)
 
 ---

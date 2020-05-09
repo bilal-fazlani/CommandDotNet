@@ -2,7 +2,7 @@
 {
     public interface INameAndDescription
     {
-        string Name { get; }
-        string Description { get; }
+        string? Name { get; }
+        string? Description { get; }
     }
 }

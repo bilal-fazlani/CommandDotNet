@@ -16,9 +16,9 @@ namespace CommandDotNet.Help
                 ? $"{header}:"
                 : $"{header}:{Environment.NewLine}";
 
-        protected override string SectionArguments<T>(Command command, ICollection<T> arguments)
+        protected override string? SectionArguments<T>(Command command, ICollection<T> arguments)
         {
-            string Name(IArgument arg)
+            string? Name(IArgument arg)
             {
                 return ArgumentName(arg);
             }

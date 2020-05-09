@@ -10,9 +10,9 @@ namespace CommandDotNet.Parsing
     /// </summary>
     public class TokenizationEvents
     {
-        public event Action<OnTokenTransformationEventArgs> OnTokenTransformation;
+        public event Action<OnTokenTransformationEventArgs>? OnTokenTransformation;
 
-        public event Action<TokenizationCompletedEventArgs> OnTokenizationCompleted;
+        public event Action<TokenizationCompletedEventArgs>? OnTokenizationCompleted;
 
         internal void TokenTransformation(CommandContext commandContext, TokenTransformation transformation, TokenCollection pre, TokenCollection post)
         {

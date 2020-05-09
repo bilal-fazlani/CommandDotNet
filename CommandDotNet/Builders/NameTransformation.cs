@@ -10,5 +10,5 @@ namespace CommandDotNet.Builders
     /// <param name="memberName">The name of the class, method, property or parameter defining the class or argument</param>
     /// <param name="nameOverride">The name provided via attribute or other extensibility point</param>
     /// <param name="commandNodeType">the <see cref="CommandNodeType"/> the name is for</param>
-    public delegate string NameTransformation(ICustomAttributeProvider attributes, string memberName, string nameOverride, CommandNodeType commandNodeType);
+    public delegate string NameTransformation(ICustomAttributeProvider attributes, string memberName, string? nameOverride, CommandNodeType commandNodeType);
 }

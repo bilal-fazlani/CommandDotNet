@@ -43,13 +43,12 @@ namespace CommandDotNet.Tokens
             _separated = separated.ToList();
             if (_separated.Any())
             {
-                _combined.Add(new Token(Tokenizer.SeparatorString, Tokenizer.SeparatorString, TokenType.Separator));
+                _combined.Add(Tokenizer.SeparatorToken);
                 _combined.AddRange(_separated);
             }
         }
 
-        [Obsolete("Use Tokenizer.Tokenize extension method to generate tokens and TokenCollection.Transform to transform them. Ensures source tokens are correctly mapped.")]
-        public TokenCollection(IEnumerable<Token> tokens)
+        internal TokenCollection(IEnumerable<Token> tokens)
         {
             _directives = new List<Token>();
             _arguments = new List<Token>();

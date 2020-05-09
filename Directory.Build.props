@@ -1,7 +1,10 @@
 <Project>
  <PropertyGroup>
-    <LangVersion>7.2</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+ </PropertyGroup>
+ <PropertyGroup>
     <Authors>Bilal Fazlani, Drew Burlingame</Authors>
     <PackageTags>dotnet core; console; argument parse;</PackageTags>
     <PackageProjectUrl>https://github.com/bilal-fazlani/CommandDotNet</PackageProjectUrl>
@@ -16,7 +19,7 @@
  <PropertyGroup>
     <!-- prettify stack traces by replacing build machine path with CommandDotNet -->
     <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
-    <PathMap>$(AppOutputBase)=CommandDotNet/</PathMap>
+    <PathMap>$(AppOutputBase)=$(MSBuildProjectName)/</PathMap>
     <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
     <IncludeSymbols>false</IncludeSymbols>
     <!-- This is for future -->

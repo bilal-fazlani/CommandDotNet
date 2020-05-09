@@ -54,12 +54,12 @@ namespace CommandDotNet.Rendering
 
     public interface IStandardStreamWriter : IStandardStream
     {
-        void Write(string value);
+        void Write(string? value);
     }
 
     public interface IStandardStreamReader : IStandardStream
     {
-        string ReadLine();
-        string ReadToEnd();
+        string? ReadLine();
+        string? ReadToEnd();
     }
 }

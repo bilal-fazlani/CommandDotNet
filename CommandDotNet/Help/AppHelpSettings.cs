@@ -17,12 +17,12 @@ namespace CommandDotNet.Help
         /// The application name used in the Usage section of help documentation.<br/>
         /// When specified, <see cref="UsageAppNameStyle"/> is ignored.
         /// </summary>
-        public string UsageAppName { get; set; }
+        public string? UsageAppName { get; set; }
 
         /// <summary>
         /// When true, the usage section will expand arguments so the names of all arguments are shown.
         /// </summary>
-        public bool ExpandArgumentsInUsage { get; set; }
+        public bool ExpandArgumentsInUsage { get; set; } = true;
 
         public override string ToString()
         {

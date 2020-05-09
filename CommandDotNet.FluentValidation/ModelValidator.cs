@@ -12,25 +12,25 @@ namespace CommandDotNet.FluentValidation
         // TODO: move FluentValidation into a separate repo & nuget package?
         //       there are other ways to do validation that could also
         //       be applied to parameters
-        private readonly IDependencyResolver _dependencyResolver;
+        private readonly IDependencyResolver? _dependencyResolver;
 
-        internal ModelValidator(IDependencyResolver dependencyResolver)
+        internal ModelValidator(IDependencyResolver? dependencyResolver)
         {
             _dependencyResolver = dependencyResolver;
         }
 
-        internal ValidationResult ValidateModel(IArgumentModel model)
+        internal ValidationResult? ValidateModel(IArgumentModel model)
         {
             Type modelType = model.GetType();
 
-            Type declaredValidatorType = modelType.GetCustomAttribute<ValidatorAttribute>()?.ValidatorType;
+            Type? declaredValidatorType = modelType.GetCustomAttribute<ValidatorAttribute>()?.ValidatorType;
             
-            if (declaredValidatorType != null)
+            if (declaredValidatorType is { })
             {
-                object validator;   
+                object? validator;   
                 try
                 {
-                    if (_dependencyResolver == null || !_dependencyResolver.TryResolve(declaredValidatorType, out validator))
+                    if (_dependencyResolver is null || !_dependencyResolver.TryResolve(declaredValidatorType, out validator))
                     {
                         validator = Activator.CreateInstance(declaredValidatorType);
                     }
@@ -41,7 +41,7 @@ namespace CommandDotNet.FluentValidation
                                                  "This exception could also occur if default constructor threw an exception", e);
                 }
 
-                return ((IValidator)validator).Validate(model);
+                return ((IValidator)validator!).Validate(model);
             }
 
             return null;

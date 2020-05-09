@@ -11,11 +11,11 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments.Models.ArgsAsArgModels
     public interface ISampleTypesArgumentsModel: IArgumentModel
     {
         bool BoolArg { get; set; }
-        string StringArg { get; set; }
+        string? StringArg { get; set; }
         int StructArg { get; set; }
         int? StructNArg { get; set; }
         DayOfWeek EnumArg { get; set; }
-        Uri ObjectArg { get; set; }
-        List<string> StringListArg { get; set; }
+        Uri? ObjectArg { get; set; }
+        List<string>? StringListArg { get; set; }
     }
 }

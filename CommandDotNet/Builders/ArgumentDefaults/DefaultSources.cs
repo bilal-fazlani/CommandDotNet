@@ -16,26 +16,26 @@ namespace CommandDotNet.Builders.ArgumentDefaults
         {
             public static IEnumerable<string> GetKeyFromAttribute(IArgument argument)
             {
-                var key = argument.CustomAttributes.GetCustomAttribute<EnvVarAttribute>()?.Key;
+                var key = argument.GetCustomAttribute<EnvVarAttribute>()?.Key;
                 if (key != null)
                 {
                     yield return key;
                 }
             }
 
-            public static Func<IArgument, ArgumentDefault> GetDefaultValue(
-                IDictionary envVars = null,
+            public static Func<IArgument, ArgumentDefault?> GetDefaultValue(
+                IDictionary? envVars = null,
                 params GetArgumentKeysDelegate[] getKeysDelegates)
             {
-                envVars = envVars ?? Environment.GetEnvironmentVariables();
-                getKeysDelegates = getKeysDelegates ?? new GetArgumentKeysDelegate[]
+                envVars ??= Environment.GetEnvironmentVariables();
+                getKeysDelegates ??= new GetArgumentKeysDelegate[]
                 {
                     GetKeyFromAttribute
                 };
                 return GetValue(
                     "EnvVar", 
                     getKeysDelegates, 
-                    key => envVars.Contains(key) ? (string) envVars[key] : null);
+                    key => envVars.Contains(key) ? (string)envVars[key] : null);
             }
         }
 
@@ -44,7 +44,7 @@ namespace CommandDotNet.Builders.ArgumentDefaults
         {
             public static IEnumerable<string> GetKeyFromAttribute(IArgument argument)
             {
-                var key = argument.CustomAttributes.GetCustomAttribute<AppSettingAttribute>()?.Key;
+                var key = argument.GetCustomAttribute<AppSettingAttribute>()?.Key;
                 if (key != null)
                 {
                     yield return key;
@@ -53,25 +53,28 @@ namespace CommandDotNet.Builders.ArgumentDefaults
 
             public static IEnumerable<string> GetKeysFromConvention(IArgument argument)
             {
-                IEnumerable<string> GetOptionKeys(Option option)
+                static IEnumerable<string> GetOptionKeys(Option option)
                 {
                     if (!option.LongName.IsNullOrWhitespace()) yield return $"--{option.LongName}";
                     if (option.ShortName.HasValue) yield return $"-{option.ShortName}";
                 }
 
                 var keys = argument.SwitchFunc(o => o.Name.ToEnumerable(), GetOptionKeys);
-                foreach (var key in keys)
+                if (keys != null)
                 {
-                    yield return $"{argument.Parent.Name} {key}";
-                    yield return key;
+                    foreach (var key in keys)
+                    {
+                        yield return $"{argument.Parent!.Name} {key}";
+                        yield return key;
+                    }
                 }
             }
 
-            public static Func<IArgument, ArgumentDefault> GetDefaultValue(
+            public static Func<IArgument, ArgumentDefault?> GetDefaultValue(
                 NameValueCollection appSettings,
                 params GetArgumentKeysDelegate[] getKeysCallbacks)
             {
-                getKeysCallbacks = getKeysCallbacks ?? new GetArgumentKeysDelegate[]
+                getKeysCallbacks ??= new GetArgumentKeysDelegate[]
                 {
                     GetKeyFromAttribute
                 };
@@ -82,10 +85,10 @@ namespace CommandDotNet.Builders.ArgumentDefaults
             }
         }
 
-        private static Func<IArgument, ArgumentDefault> GetValue(
+        private static Func<IArgument, ArgumentDefault?> GetValue(
             string sourceName,
-            GetArgumentKeysDelegate[] getKeys, 
-            Func<string, string> getValueFromSource)
+            GetArgumentKeysDelegate[] getKeys,
+            Func<string, string?> getValueFromSource)
         {
             return argument =>
             {
@@ -95,10 +98,10 @@ namespace CommandDotNet.Builders.ArgumentDefaults
                     .Where(v => v.value != null)
                     .Select(v =>
                     {
-                        object f = argument.Arity.AllowsMany()
-                            ? v.value.Split(',')
-                            : (object)v.value;
-                        return new ArgumentDefault(sourceName, v.key, f);
+                        object defaultValue = argument.Arity.AllowsMany()
+                            ? v.value!.Split(',')
+                            : (object)v.value!;
+                        return new ArgumentDefault(sourceName, v.key, defaultValue);
                     })
                     .FirstOrDefault();
 

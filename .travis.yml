@@ -1,10 +1,17 @@
 language: csharp
 mono: none
 
+addons:
+    apt:
+      packages: dotnet-sdk-3.1
+    homebrew:
+      packages: dotnet
+
 notifications:
   webhooks:
     urls:
       - https://discord-build-notifications.herokuapp.com/travis
+      - https://webhooks.gitter.im/e/272ef04cd179f5384ad8
     on_success: change # default: always
     on_failure: always # default: always
     on_start: never # default: never
@@ -22,23 +29,39 @@ jobs:
         - stage: test
           name: test on osx
           os: osx
-          script: dotnet test CommandDotNet.Tests/CommandDotNet.Tests.csproj
-          dotnet: 2.1.300
+          # https://travis-ci.community/t/c-build-with-netcore3-1-failed-on-mac-os-and-succed-on-linux/7860
+          dotnet: 3.1.200
+          install:
+            - dotnet restore
+          script:
+            - dotnet test CommandDotNet.Tests/CommandDotNet.Tests.csproj
         - name: test on linux
           os: linux
-          script: dotnet test CommandDotNet.Tests/CommandDotNet.Tests.csproj
-          dotnet: 2.1
+          dotnet: 3.1
+          install:
+            - dotnet restore
+          script:
+            - dotnet test CommandDotNet.Tests/CommandDotNet.Tests.csproj
         - name: test on windows
           os: windows
-          script: dotnet test CommandDotNet.Tests/CommandDotNet.Tests.csproj
+          script:
+            - choco install dotnetcore-sdk
+            - dotnet --version
+            - dotnet restore
+            - dotnet test CommandDotNet.Tests/CommandDotNet.Tests.csproj
         #-----------------------------------
 
         #--------- DEPLOYMENT JOB ----------  
         - stage: deploy
           name: nuget & github release
-          script: ./deploy.sh
           os: linux
-          dotnet: 2.1
+          dotnet: 3.1
+          install:
+            - dotnet restore
+          script: 
+            - dotnet test CommandDotNet.Tests/CommandDotNet.Tests.csproj
+          script: 
+            - ./deploy.sh
           env:
               - secure: rzK8y4HE7yCVPStFdVttd1ApJ15xGhiGObJsHifi5ulaR/4POUU5o+6Bf/kLxCbhPeK0VBT5Zlt2WUNYq19IF8PbwZqADMQwc8NJVYX78UEbtbq5NaI2xFTbLC5Ng8GWcl5cEhl68pTMHIbqkAmUW7H3ESQVqz7DBG2oehCWXlEggI6hiXgS/QWE/W6YdLMoitPZTATeM1FXs3ZT1IMRGCpcl4mVkK8bEr8fFemujWOD7ymZYZUAr97B9u6oPz/mgW0BsWKNQfHkS6t92N/1WZyX8voJ4hszKvJedYaw3u8FVJvG4KNhMtT24GQl2b8MCkqVo6U41kRHSfkg5uNIigSy/mYKyT8WQWf/bT/WrKyVSepKcHaT1rYdKac/hmOTa66804P44ZTa9l0J2r9fTEg7qPRmC83e81KprIg6WptE9UpN9bRjtzULa7gZyAtoO8TgUCEt1+siP/cGqUtU/gwG4Pv/Bgxy6CIda5NLzNDCTZqWdkJkdogKLFDzjawDn1LG8j8SlGo7h6wb92YcS+EQLww4fk6CSJU7IY35tfzxGG3onWvR9sUn4bjulROOIVAEmpwzLmuSsvQZ5Jv8dnp6m0KPJGHFJWzYPUsmVDFPRZul6y1MROIax36AtQnUCu3LMQu5dAwizOvmmE6DPopfJjn1gHiFHU/nSL7Qcgg=
         #-----------------------------------

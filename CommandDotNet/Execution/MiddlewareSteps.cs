@@ -3,104 +3,93 @@
     public static class MiddlewareSteps
     {
         /// <summary>Runs first in the <see cref="MiddlewareStages.PreTokenize"/> stage</summary>
-        public static class DebugDirective
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.PreTokenize;
-            public static readonly int Order = -1000;
-        }
+        public static MiddlewareStep DebugDirective { get; } = new MiddlewareStep(MiddlewareStages.PreTokenize);
+
+        /// <summary>
+        /// Runs early in the <see cref="MiddlewareStages.PreTokenize"/> stage after <see cref="DebugDirective"/>
+        /// </summary>
+        public static MiddlewareStep CancellationHandler { get; } = DebugDirective + 1000;
+
+        /// <summary>
+        /// Runs early in the <see cref="MiddlewareStages.PreTokenize"/> stage after <see cref="CancellationHandler"/>
+        /// </summary>
+        public static MiddlewareStep OnRunCompleted { get; } = CancellationHandler + 1000;
 
         public static class DependencyResolver
         {
-            public static class BeginScope
-            {
-                public static readonly MiddlewareStages Stage = MiddlewareStages.PreTokenize;
-                public static readonly int Order = -900;
-            }
+            /// <summary>
+            /// Runs early in the <see cref="MiddlewareStages.PreTokenize"/> stage after <see cref="OnRunCompleted"/>
+            /// </summary>
+            public static MiddlewareStep BeginScope { get; } = OnRunCompleted + 1000;
         }
 
-        public static class Tokenize
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.Tokenize;
-            public static readonly int Order = -1000;
-        }
+        public static MiddlewareStep ParseDirective { get; } = Help.PrintHelpOnExit + 1000;
 
-        public static class CreateRootCommand
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.Tokenize;
-            public static readonly int Order = int.MaxValue - 1000;
-        }
+        public static MiddlewareStep Tokenize { get; } =
+            new MiddlewareStep(MiddlewareStages.Tokenize, 0);
 
-        public static class ParseInput
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.ParseInput;
-            public static readonly int Order = 0;
-        }
+        /// <summary>
+        /// Runs late in the <see cref="MiddlewareStages.Tokenize"/> stage
+        /// </summary>
+        public static MiddlewareStep CreateRootCommand { get; } =
+            new MiddlewareStep(MiddlewareStages.Tokenize, short.MaxValue - 1000);
+
+        public static MiddlewareStep ParseInput { get; } =
+            new MiddlewareStep(MiddlewareStages.ParseInput, 0);
 
         public static class AutoSuggest
         {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.ParseInput;
-            public static readonly int Order = ParseInput.Order + 100;
+            /// <summary>
+            /// Runs after <see cref="ParseInput"/> to suggest next possible argument or value
+            /// </summary>
+            public static MiddlewareStep Directive { get; } = ParseInput + 1000;
+            /// <summary>
+            /// Runs after <see cref="ParseInput"/> to suggest next possible argument or value
+            /// </summary>
+            public static MiddlewareStep RegisterWithDotNetSuggest { get; } = ParseInput + 1000;
         }
 
-        public static class TypoSuggest
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.ParseInput;
-            public static readonly int Order = AutoSuggest.Order + 100;
-        }
 
-        public static class AssembleInvocationPipeline
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.ParseInput;
-            public static readonly int Order = ParseInput.Order + 1000;
-        }
+        /// <summary>
+        /// Runs after <see cref="ParseInput"/> to respond to parse errors
+        /// </summary>
+        public static MiddlewareStep TypoSuggest { get; } = AutoSuggest.Directive + 1000;
 
-        /// <summary>Runs before <see cref="Help"/> to ensure default values are included in the help output</summary>
-        public static class Version
-        {
-            public static readonly MiddlewareStages Stage = Help.Stage;
-            public static readonly int Order = Help.Order - 2000;
-        }
+        public static MiddlewareStep AssembleInvocationPipeline { get; } = ParseInput + 2000;
 
         /// <summary>Runs before <see cref="Help"/> to ensure default values are included in the help output</summary>
-        public static class SetArgumentDefaults
-        {
-            public static readonly MiddlewareStages Stage = Help.Stage;
-            public static readonly int Order = Help.Order - 1000;
-        }
+        public static MiddlewareStep Version { get; } = Help.CheckIfShouldShowHelp - 2000;
 
-        /// <summary>Runs at the end of the <see cref="MiddlewareStages.ParseInput"/> stage</summary>
+        /// <summary>Runs before <see cref="Help"/> to ensure default values are included in the help output</summary>
+        public static MiddlewareStep SetArgumentDefaults { get; } = Help.CheckIfShouldShowHelp - 1000;
+
         public static class Help
         {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.ParseInput;
-            public static readonly int Order = int.MaxValue;
+            /// <summary>Runs at the end of the <see cref="MiddlewareStages.ParseInput"/> stage</summary>
+            public static MiddlewareStep CheckIfShouldShowHelp { get; } =
+                new MiddlewareStep(MiddlewareStages.ParseInput, short.MaxValue);
+            public static MiddlewareStep PrintHelpOnExit { get; } = DependencyResolver.BeginScope + 1000;
         }
 
-        public static class PipedInput
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.PostParseInputPreBindValues;
-            public static readonly int Order = -1;
-        }
+        public static MiddlewareStep PipedInput { get; } =
+            new MiddlewareStep(MiddlewareStages.PostParseInputPreBindValues, 0);
 
         /// <summary>
         /// Runs late in the <see cref="MiddlewareStages.PostParseInputPreBindValues"/>
         /// stage to enable other middleware to populate arguments
         /// </summary>
-        public static class ValuePromptMissingArguments
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.PostParseInputPreBindValues;
-            public static readonly int Order = int.MaxValue - 100;
-        }
+        public static MiddlewareStep ValuePromptMissingArguments { get; } =
+            new MiddlewareStep(MiddlewareStages.PostParseInputPreBindValues, short.MaxValue - 1000);
 
-        public static class BindValues
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.BindValues;
-            public static readonly int Order = 0;
-        }
+        public static MiddlewareStep BindValues { get; } =
+            new MiddlewareStep(MiddlewareStages.BindValues, 0);
 
-        public static class ResolveCommandClasses
-        {
-            public static readonly MiddlewareStages Stage = MiddlewareStages.BindValues;
-            public static readonly int Order = BindValues.Order + 100;
-        }
+        /// <summary>Runs after the <see cref="BindValues"/> step</summary>
+        public static MiddlewareStep ResolveCommandClasses { get; } = BindValues + 1000;
+
+        public static MiddlewareStep CommandLogger { get; } = new MiddlewareStep(MiddlewareStages.Invoke, 0);
+
+        /// <summary>Runs last in the <see cref="MiddlewareStages.Invoke"/> stage</summary>
+        public static MiddlewareStep InvokeCommand { get; } = new MiddlewareStep(MiddlewareStages.Invoke, short.MaxValue);
     }
 }

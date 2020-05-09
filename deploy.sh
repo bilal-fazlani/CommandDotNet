@@ -114,7 +114,7 @@ fixNupkgVersions () {
   echo " "
   
   # update nuspec with correct versions of referenced projects  
-  cd $PROJECT_NAME/output
+  cd output
   unzip $NUPKG_FILE $NUSPEC_FILE
   chmod 666 $NUSPEC_FILE
   
@@ -122,7 +122,7 @@ fixNupkgVersions () {
   
   zip $NUPKG_FILE $NUSPEC_FILE
   rm $NUSPEC_FILE
-  cd ../..
+  cd ..
   
   echo " "
   echo " <<< fixNupkgVersions"
@@ -172,4 +172,4 @@ echo " "
 fixNupkgVersions
 
 # PUBLISH TO NUGET
-dotnet nuget push -s https://api.nuget.org/v3/index.json -k $NUGET_API_KEY_COMMANDDOTNET $PROJECT_NAME/output/$NUPKG_FILE
+dotnet nuget push -s https://api.nuget.org/v3/index.json -k $NUGET_API_KEY_COMMANDDOTNET output/$NUPKG_FILE

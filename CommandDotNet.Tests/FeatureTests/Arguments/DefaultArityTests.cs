@@ -17,11 +17,9 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         private static readonly ArgumentArity ZeroToMany = new ArgumentArity(0, int.MaxValue);
         private static readonly ArgumentArity OneToMany = new ArgumentArity(1, int.MaxValue);
 
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public DefaultArityTests(ITestOutputHelper testOutputHelper)
+        public DefaultArityTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
 
         [Fact]
@@ -29,7 +27,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         {
             var operands = GetOperands(nameof(App.Params));
 
-            operands.Boolean.Arity.Should().Be(OneToOne);
+            operands!.Boolean.Arity.Should().Be(OneToOne);
             operands.NullableBoolean.Arity.Should().Be(ZeroToOne);
             operands.Number.Arity.Should().Be(OneToOne);
             operands.NullableNumber.Arity.Should().Be(ZeroToOne);
@@ -43,7 +41,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         {
             var operands = GetOperands(nameof(App.DefaultParams));
 
-            operands.Boolean.Arity.Should().Be(ZeroToOne);
+            operands!.Boolean.Arity.Should().Be(ZeroToOne);
             operands.NullableBoolean.Arity.Should().Be(ZeroToOne);
             operands.Number.Arity.Should().Be(ZeroToOne);
             operands.NullableNumber.Arity.Should().Be(ZeroToOne);
@@ -57,7 +55,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         {
             var operands = GetOperands(nameof(App.Model));
 
-            operands.Boolean.Arity.Should().Be(OneToOne);
+            operands!.Boolean.Arity.Should().Be(OneToOne);
             operands.NullableBoolean.Arity.Should().Be(ZeroToOne);
             operands.Number.Arity.Should().Be(OneToOne);
             operands.NullableNumber.Arity.Should().Be(ZeroToOne);
@@ -83,7 +81,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
                 }
             });
 
-            operands.Boolean.Arity.Should().Be(ZeroToOne);
+            operands!.Boolean.Arity.Should().Be(ZeroToOne);
             operands.NullableBoolean.Arity.Should().Be(ZeroToOne);
             operands.Number.Arity.Should().Be(ZeroToOne);
             operands.NullableNumber.Arity.Should().Be(ZeroToOne);
@@ -109,7 +107,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
                 }
             });
 
-            operands.Boolean.Arity.Should().Be(OneToOne);
+            operands!.Boolean.Arity.Should().Be(OneToOne);
             operands.NullableBoolean.Arity.Should().Be(ZeroToOne);
             operands.Number.Arity.Should().Be(OneToOne);
             operands.NullableNumber.Arity.Should().Be(ZeroToOne);
@@ -118,21 +116,16 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
             operands.Texts.Arity.Should().Be(OneToMany);
         }
 
-        private Operands GetOperands(string methodName, IDependencyResolver dependencyResolver = null)
+        private Operands? GetOperands(string methodName, IDependencyResolver? dependencyResolver = null)
         {
-            Operands operands = null;
             var appRunner = new AppRunner<App>();
             if (dependencyResolver != null)
             {
                 appRunner.UseDependencyResolver(dependencyResolver);
             }
-            appRunner
-                .CaptureState(
-                    ctx => operands = Operands.FromCommand(ctx.ParseResult.TargetCommand),
-                    MiddlewareStages.PostParseInputPreBindValues,
-                    exitAfterCapture: true)
-                .RunInMem($"{methodName}", _testOutputHelper);
-            return operands;
+            return appRunner.GetFromContext(methodName.SplitArgs(),
+                    ctx => Operands.FromCommand(ctx.ParseResult!.TargetCommand),
+                    middlewareStage: MiddlewareStages.PostParseInputPreBindValues);
         }
 
         class App
@@ -147,8 +140,8 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
             public void DefaultParams(
                 bool boolean = true, bool? nullableBoolean = null,
                 int number = 1, int? nullableNumber = null,
-                string text = null, Uri uri = null,
-                IEnumerable<string> texts = null)
+                string? text = null, Uri? uri = null,
+                IEnumerable<string>? texts = null)
             { }
 
             public void Model(ArgModel model) { }
@@ -156,13 +149,20 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
 
         class ArgModel : IArgumentModel
         {
+            [Operand]
             public bool Boolean { get; set; }
+            [Operand]
             public bool? NullableBoolean { get; set; }
+            [Operand]
             public int Number { get; set; }
+            [Operand]
             public int? NullableNumber { get; set; }
-            public string Text { get; set; }
-            public Uri Uri { get; set; }
-            public IEnumerable<string> Texts { get; set; }
+            [Operand]
+            public string? Text { get; set; }
+            [Operand]
+            public Uri? Uri { get; set; }
+            [Operand]
+            public IEnumerable<string>? Texts { get; set; }
         }
 
         class Operands

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using CommandDotNet.Builders;
 using CommandDotNet.Extensions;
 using CommandDotNet.Help;
 using CommandDotNet.Parsing;
 using CommandDotNet.Rendering;
 using CommandDotNet.Tokens;
+using static System.Environment;
 
 namespace CommandDotNet.Execution
 {
@@ -24,12 +24,6 @@ namespace CommandDotNet.Execution
         public IConsole Console { get; }
 
         /// <summary>
-        /// The application <see cref="CancellationToken"/>.
-        /// Set in <see cref="AppRunner.Configure"/>
-        /// </summary>
-        public CancellationToken CancellationToken { get; }
-
-        /// <summary>
         /// Services registered for the lifetime of the application.<br/>
         /// Use to store configurations for use by middleware.<br/>
         /// Add services in <see cref="AppRunner.Configure"/>
@@ -40,7 +34,7 @@ namespace CommandDotNet.Execution
         /// The application <see cref="IDependencyResolver"/>.
         /// Set in <see cref="AppRunner.Configure"/>
         /// </summary>
-        public IDependencyResolver DependencyResolver { get; }
+        public IDependencyResolver? DependencyResolver { get; }
 
         /// <summary>
         /// The application <see cref="IHelpProvider"/>.
@@ -49,7 +43,7 @@ namespace CommandDotNet.Execution
         /// </summary>
         public IHelpProvider HelpProvider { get; }
 
-        internal Action<OnRunCompletedEventArgs> OnRunCompleted { get; }
+        internal Action<OnRunCompletedEventArgs>? OnRunCompleted { get; set; }
         internal TokenizationEvents TokenizationEvents { get; }
         internal BuildEvents BuildEvents { get; }
         internal IReadOnlyCollection<ExecutionMiddleware> MiddlewarePipeline { get; set; }
@@ -59,11 +53,11 @@ namespace CommandDotNet.Execution
         internal ResolverService ResolverService { get; }
 
         public AppConfig(AppSettings appSettings, IConsole console,
-            IDependencyResolver dependencyResolver, IHelpProvider helpProvider, 
-            NameTransformation nameTransformation, Action<OnRunCompletedEventArgs> onRunCompleted,
+            IDependencyResolver? dependencyResolver, IHelpProvider helpProvider,
+            NameTransformation? nameTransformation, Action<OnRunCompletedEventArgs>? onRunCompleted,
             TokenizationEvents tokenizationEvents, BuildEvents buildEvents, IServices services,
-            CancellationToken cancellationToken,
-            Dictionary<Type, Func<CommandContext, object>> parameterResolversByType)
+            Dictionary<Type, Func<CommandContext, object>> parameterResolversByType,
+            ExecutionMiddleware[] middlewarePipeline, TokenTransformation[] tokenTransformations)
         {
             AppSettings = appSettings;
             Console = console;
@@ -74,8 +68,9 @@ namespace CommandDotNet.Execution
             TokenizationEvents = tokenizationEvents;
             BuildEvents = buildEvents;
             Services = services;
-            CancellationToken = cancellationToken;
             ParameterResolversByType = parameterResolversByType;
+            MiddlewarePipeline = middlewarePipeline;
+            TokenTransformations = tokenTransformations;
 
             ResolverService = services.GetOrAdd(() => new ResolverService());
             ResolverService.BackingResolver = dependencyResolver;
@@ -89,29 +84,29 @@ namespace CommandDotNet.Execution
 
         public string ToString(Indent indent)
         {
-            var nl = Environment.NewLine;
+            indent = indent.Increment();
             var indent2 = indent.Increment();
 
             var tokenTransformations = TokenTransformations
                 .OrderBy(t => t.Order)
                 .Select(t => $"{indent2}{t.Name}({t.Order})")
-                .ToCsv(nl);
+                .ToCsv(NewLine);
 
             var middleware = MiddlewarePipeline
                 .Select(m => $"{indent2}{m.Method.FullName()}")
-                .ToCsv(nl);
+                .ToCsv(NewLine);
 
             var paramResolvers = ParameterResolversByType.Keys
                 .Select(k => $"{indent2}{k}")
-                .ToCsv(nl);
+                .ToCsv(NewLine);
 
-            return $"{nameof(AppConfig)}:{nl}" +
-                   $"{indent}{AppSettings.ToString(indent.Increment())}{nl}" +
-                   $"{indent}DependencyResolver: {DependencyResolver}{nl}" +
-                   $"{indent}HelpProvider: {HelpProvider}{nl}" +
-                   $"{indent}TokenTransformations:{nl}{tokenTransformations}{nl}" +
-                   $"{indent}MiddlewarePipeline:{nl}{middleware}{nl}" +
-                   $"{indent}ParameterResolvers:{nl}{paramResolvers}";
+            return $"{nameof(AppConfig)}:{NewLine}" +
+                   $"{indent}{AppSettings.ToString(indent.Increment())}{NewLine}" +
+                   $"{indent}DependencyResolver: {DependencyResolver}{NewLine}" +
+                   $"{indent}HelpProvider: {HelpProvider}{NewLine}" +
+                   $"{indent}TokenTransformations:{NewLine}{tokenTransformations}{NewLine}" +
+                   $"{indent}MiddlewarePipeline:{NewLine}{middleware}{NewLine}" +
+                   $"{indent}ParameterResolvers:{NewLine}{paramResolvers}";
         }
     }
 }

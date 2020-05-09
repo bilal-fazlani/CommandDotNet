@@ -1,6 +1,6 @@
-﻿using System.Collections.Specialized;
+using System.Collections.Specialized;
 using CommandDotNet.Extensions;
-using CommandDotNet.TestTools;
+using CommandDotNet.Tests.Utils;
 using CommandDotNet.TestTools.Scenarios;
 using Xunit;
 using Xunit.Abstractions;
@@ -9,11 +9,9 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
 {
     public class DefaultFromAppSettingsTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public DefaultFromAppSettingsTests(ITestOutputHelper testOutputHelper)
+        public DefaultFromAppSettingsTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
 
         [Theory]
@@ -42,20 +40,20 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
             var scenario = includes
                 ? new Scenario
                 {
-                    WhenArgs = "ByConvention -h",
-                    Then = {ResultsContainsTexts = {$"{nameToInclude}  <TEXT>  [red]"}}
+                    When = {Args = "ByConvention -h"},
+                    Then = {OutputContainsTexts = {$"{nameToInclude}  <TEXT>  [red]"}}
                 }
                 : new Scenario
                 {
-                    WhenArgs = "ByConvention -h",
-                    Then = {ResultsNotContainsTexts = {$"{nameToInclude}  <TEXT>  [red]"}}
+                    When = {Args = "ByConvention -h"},
+                    Then = {OutputNotContainsTexts = {$"{nameToInclude}  <TEXT>  [red]"}}
                 };
 
             new AppRunner<App>()
                 .UseDefaultsFromAppSetting(
                     new NameValueCollection {{key, "red"}},
                     includeNamingConventions: true)
-                .VerifyScenario(_testOutputHelper, scenario);
+                .Verify(scenario);
         }
 
         [Theory]
@@ -82,19 +80,19 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
             var scenario = includes
                 ? new Scenario
                 {
-                    WhenArgs = "ByAttribute -h",
-                    Then = { ResultsContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
+                    When = {Args = "ByAttribute -h"},
+                    Then = { OutputContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
                 }
                 : new Scenario
                 {
-                    WhenArgs = "ByAttribute -h",
-                    Then = { ResultsNotContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
+                    When = {Args = "ByAttribute -h"},
+                    Then = { OutputNotContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
                 };
 
             new AppRunner<App>()
                 .UseDefaultsFromAppSetting(
                     new NameValueCollection { { key, "red" } })
-                .VerifyScenario(_testOutputHelper, scenario);
+                .Verify(scenario);
         }
 
         [Theory]
@@ -129,20 +127,20 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
             var scenario = includes
                 ? new Scenario
                 {
-                    WhenArgs = "ByAttribute -h",
-                    Then = { ResultsContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
+                    When = {Args = "ByAttribute -h"},
+                    Then = { OutputContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
                 }
                 : new Scenario
                 {
-                    WhenArgs = "ByAttribute -h",
-                    Then = { ResultsNotContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
+                    When = {Args = "ByAttribute -h"},
+                    Then = { OutputNotContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
                 };
 
             new AppRunner<App>()
                 .UseDefaultsFromAppSetting(
                     new NameValueCollection { { key, "red" } },
                     includeNamingConventions: true)
-                .VerifyScenario(_testOutputHelper, scenario);
+                .Verify(scenario);
         }
 
         [Theory]
@@ -153,13 +151,13 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
             var scenario = includes
                 ? new Scenario
                 {
-                    WhenArgs = "ByAttribute -h",
-                    Then = { ResultsContainsTexts = { $"{nameToInclude}  <TEXT>  [{color}]" } }
+                    When = {Args = "ByAttribute -h"},
+                    Then = { OutputContainsTexts = { $"{nameToInclude}  <TEXT>  [{color}]" } }
                 }
                 : new Scenario
                 {
-                    WhenArgs = "ByAttribute -h",
-                    Then = { ResultsNotContainsTexts = { $"{nameToInclude}  <TEXT>  [{color}]" } }
+                    When = {Args = "ByAttribute -h"},
+                    Then = { OutputNotContainsTexts = { $"{nameToInclude}  <TEXT>  [{color}]" } }
                 };
 
             var nvc = new NameValueCollection();
@@ -171,7 +169,7 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
 
             new AppRunner<App>()
                 .UseDefaultsFromAppSetting(nvc, includeNamingConventions: true)
-                .VerifyScenario(_testOutputHelper, scenario);
+                .Verify(scenario);
         }
 
         [Theory]
@@ -184,21 +182,18 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
                 {key, value}
             };
 
-            var scenario = new Scenario
-            {
-                WhenArgs = args,
-                Then = { Outputs = { value.Split(',') } }
-            };
-
+            var expectedParamValues = value.Split(',');
             new AppRunner<App>()
                 .UseDefaultsFromAppSetting(nvc, includeNamingConventions: true)
-                .VerifyScenario(_testOutputHelper, scenario);
+                .Verify(new Scenario
+                {
+                    When = {Args = args},
+                    Then = {AssertContext = ctx => ctx.ParamValuesShouldBe(new object[]{expectedParamValues})}
+                });
         }
 
         public class App
         {
-            private TestOutputs TestOutputs { get; set; }
-
             public void ByConvention(
                 [Option(LongName = "option1", ShortName = "o")] string option1,
                 [Operand] string operand1,
@@ -222,7 +217,6 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
 
             public void List(string[] planets)
             {
-                TestOutputs.CaptureIfNotNull(planets);
             }
         }
     }

@@ -12,7 +12,7 @@ namespace CommandDotNet.Builders
         /// Emitted for a <see cref="Command"/> after it has been created.
         /// Arguments and subcommands defined in the class/method will have been added.
         /// </summary>
-        public event Action<CommandCreatedEventArgs> OnCommandCreated;
+        public event Action<CommandCreatedEventArgs>? OnCommandCreated;
 
         internal void CommandCreated(CommandContext commandContext, ICommandBuilder commandBuilder)
         {
@@ -26,8 +26,8 @@ namespace CommandDotNet.Builders
 
             public CommandCreatedEventArgs(CommandContext commandContext, ICommandBuilder commandBuilder)
             {
-                CommandContext = commandContext;
-                CommandBuilder = commandBuilder;
+                CommandContext = commandContext ?? throw new ArgumentNullException(nameof(commandContext));
+                CommandBuilder = commandBuilder ?? throw new ArgumentNullException(nameof(commandBuilder));
             }
         }
     }

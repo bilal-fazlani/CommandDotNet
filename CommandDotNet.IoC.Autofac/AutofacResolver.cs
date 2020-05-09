@@ -18,7 +18,7 @@ namespace CommandDotNet.IoC.Autofac
             return _container.Resolve(type);
         }
 
-        public bool TryResolve(Type type, out object item)
+        public bool TryResolve(Type type, out object? item)
         {
             return _container.TryResolve(type, out item);
         }

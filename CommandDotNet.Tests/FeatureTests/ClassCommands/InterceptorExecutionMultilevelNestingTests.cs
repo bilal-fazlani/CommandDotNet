@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CommandDotNet.TestTools;
 using CommandDotNet.TestTools.Scenarios;
+using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -8,44 +9,48 @@ namespace CommandDotNet.Tests.FeatureTests.ClassCommands
 {
     public class InterceptorExecutionMultilevelNestingTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public InterceptorExecutionMultilevelNestingTests(ITestOutputHelper testOutputHelper)
+        public InterceptorExecutionMultilevelNestingTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
 
         [Fact]
         public void WhenChildCommandsAreNotRequested_TheirInterceptorsAreNotExecuted()
         {
-            new AppRunner<App>()
-                .VerifyScenario(_testOutputHelper, new Scenario
+            new AppRunner<Level1>()
+                .TrackingInvocations()
+                .Verify(new Scenario
                 {
-                    WhenArgs = "--name gramps Greet",
+                    When = {Args = "--name lala Do"},
                     Then =
                     {
-                        Outputs =
+                        AssertContext = ctx =>
                         {
-                            "Hello, my name is gramps. My child is null. My grandchild is null."
+                            ctx.GetInterceptorInvocationInfo<Level1>().WasInvoked.Should().BeTrue();
+                            ctx.IsIntercepting<Level2>().Should().BeFalse();
+                            ctx.IsIntercepting<Level3>().Should().BeFalse();
                         }
                     }
                 });
         }
 
         [Fact]
-        public void WhenChildCommandsAreRequested_TheirAllAncestorInterceptorsAreExecuted()
+        public void WhenChildCommandsAreRequested_AllAncestorInterceptorsAreExecuted()
         {
             // this test also proves we can NOT use the same option name for each command because they will conflict.
             // TODO: allow same name. Requires update to how ArgumentValues are keyed.
-            new AppRunner<App>()
-                .VerifyScenario(_testOutputHelper, new Scenario
+            new AppRunner<Level1>()
+                .TrackingInvocations()
+                .Verify(new Scenario
                 {
-                    WhenArgs = "--name gramps Child --name2 pops GrandChild --name3 junior Greet",
+                    When = { Args = "--name lala Level2 --name2 lala Level3 --name3 fishies Do" },
                     Then =
                     {
-                        Outputs =
+                        AssertContext = ctx =>
                         {
-                            "Hello, my name is junior. My parent is pops. My grandparent is gramps."
+                            ctx.GetInterceptorInvocationInfo<Level1>().WasInvoked.Should().BeTrue();
+                            ctx.GetInterceptorInvocationInfo<Level2>().WasInvoked.Should().BeTrue();
+                            ctx.GetInterceptorInvocationInfo<Level3>().WasInvoked.Should().BeTrue();
                         }
                     }
                 });
@@ -56,82 +61,79 @@ namespace CommandDotNet.Tests.FeatureTests.ClassCommands
         {
             // this test also proves we can NOT use the same option name for each command because they will conflict.
             // TODO: allow same name. Requires update to how ArgumentValues are keyed.
-            new AppRunner<App>()
-                .VerifyScenario(_testOutputHelper, new Scenario
+            new AppRunner<Level1>()
+                .TrackingInvocations()
+                .Verify(new Scenario
                 {
-                    WhenArgs = "--name gramps GrandChild --name3 junior Greet",
+                    When = {Args = "--name lala Level3 --name3 fishies Do"},
                     Then =
                     {
-                        Outputs =
+                        AssertContext = ctx =>
                         {
-                            "Hello, my name is junior. My parent is null. My grandparent is gramps."
+                            ctx.GetInterceptorInvocationInfo<Level1>().WasInvoked.Should().BeTrue();
+                            ctx.IsIntercepting<Level2>().Should().BeFalse();
+                            ctx.GetInterceptorInvocationInfo<Level3>().WasInvoked.Should().BeTrue();
                         }
                     }
                 });
         }
 
-        class App
+        class Level1
         {
-            private TestOutputs TestOutputs { get; set; }
-            
             [SubCommand]
-            public Child Child { get; set; }
+            public Level2 Level2 { get; set; } = null!;
             [SubCommand]
-            public GrandChild GrandChild { get; set; }
+            public Level3 Level3 { get; set; } = null!;
 
-            public string Name { get; private set; }
+            public string Name { get; private set; } = null!;
 
             public Task<int> Intercept(InterceptorExecutionDelegate next, string name)
             {
                 Name = name;
-                if (Child != null)
+                if (Level2 != null)
                 {
-                    // will be null if GrandChild is called directly or this.Greet is called
-                    Child.ParentName = name;
+                    // will be null if GrandChild is called directly or this.Do is called
+                    Level2.ParentName = name;
                 }
-                if (GrandChild != null)
+                if (Level3 != null)
                 {
-                    // will be null if GrandChild is NOT called directly or this.Greet is called
-                    GrandChild.GrandParentName = name;
+                    // will be null if GrandChild is NOT called directly or this.Do is called
+                    Level3.GrandParentName = name;
                 }
                 return next();
             }
 
-            public void Greet() => TestOutputs.Capture($"Hello, my name is {Name}. My child is {Child?.Name ?? "null"}. My grandchild is {GrandChild?.Name ?? "null"}.");
+            public void Do() { }
         }
 
-        class Child
+        class Level2
         {
-            private TestOutputs TestOutputs { get; set; }
-
             [SubCommand]
-            public GrandChild MyChild { get; set; }
+            public Level3 MyChild { get; set; } = null!;
 
-            public string ParentName { get; set; }
-            public string Name { get; private set; }
+            public string? ParentName { get; set; }
+            public string? Name { get; private set; }
 
             public Task<int> Intercept(InterceptorExecutionDelegate next, string name2)
             {
                 Name = name2;
                 if (MyChild != null)
                 {
-                    // will be null if this.Greet is called
+                    // will be null if this.Do is called
                     MyChild.ParentName = name2;
                     MyChild.GrandParentName = ParentName;
                 }
                 return next();
             }
 
-            public void Greet() => TestOutputs.Capture($"Hello, my name is {Name}. My parent is {ParentName}. My child is {MyChild?.Name ?? "null"}");
+            public void Do() {}
         }
 
-        class GrandChild
+        class Level3
         {
-            private TestOutputs TestOutputs { get; set; }
-
-            public string GrandParentName { get; set; }
-            public string ParentName { get; set; }
-            public string Name { get; private set; }
+            public string? GrandParentName { get; set; }
+            public string? ParentName { get; set; }
+            public string? Name { get; private set; }
 
             public Task<int> Intercept(InterceptorExecutionDelegate next, string name3)
             {
@@ -139,7 +141,7 @@ namespace CommandDotNet.Tests.FeatureTests.ClassCommands
                 return next();
             }
             
-            public void Greet() => TestOutputs.Capture($"Hello, my name is {Name}. My parent is {ParentName ?? "null"}. My grandparent is {GrandParentName}.");
+            public void Do() {}
         }
     }
 }

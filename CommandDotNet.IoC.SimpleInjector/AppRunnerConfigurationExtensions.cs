@@ -16,23 +16,17 @@ namespace CommandDotNet.IoC.SimpleInjector
         /// <param name="commandClassResolveStrategy">
         /// the <see cref="ResolveStrategy"/> used to resolve command classes.
         /// </param>
-        /// <param name="useLegacyInjectDependenciesAttribute"> 
-        /// when true, resolve instances for properties marked with [InjectProperty].
-        /// This feature is deprecated and may be removed with next major release.
-        /// </param>
         public static AppRunner UseSimpleInjector(
             this AppRunner appRunner, 
             Container container, 
-            Func<CommandContext, IDisposable> runInScope = null,
+            Func<CommandContext, IDisposable>? runInScope = null,
             ResolveStrategy argumentModelResolveStrategy = ResolveStrategy.TryResolve,
-            ResolveStrategy commandClassResolveStrategy = ResolveStrategy.Resolve,
-            bool useLegacyInjectDependenciesAttribute = false)
+            ResolveStrategy commandClassResolveStrategy = ResolveStrategy.Resolve)
         {
             return appRunner.UseDependencyResolver(new SimpleInjectorResolver(container),
                 runInScope,
                 argumentModelResolveStrategy,
-                commandClassResolveStrategy,
-                useLegacyInjectDependenciesAttribute);
+                commandClassResolveStrategy);
         }
     }
 }

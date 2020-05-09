@@ -6,7 +6,7 @@ namespace CommandDotNet.Example.Commands
     public class Git
     {
         [SubCommand]
-        public Submodule SubmoduleProperty { get; set; }
+        public Submodule? SubmoduleProperty { get; set; }
 
         [SubCommand]
         public class Remote
@@ -30,19 +30,19 @@ namespace CommandDotNet.Example.Commands
             [DefaultMethod]
             public void DoStash()
             {
-                Console.WriteLine($"changes stashed");
+                Console.WriteLine("changes stashed");
             }
         
             [Command(Name = "pop", Description = "Applies last stashed changes")]
             public void Pop()
             {
-                Console.WriteLine($"stash popped");
+                Console.WriteLine("stash popped");
             }
 
             [Command(Name = "list", Description = "Lists all saved stashed changes")]
             public void List()
             {
-                Console.WriteLine($"here's the list of stash");
+                Console.WriteLine("here's the list of stash");
             }
         }
         

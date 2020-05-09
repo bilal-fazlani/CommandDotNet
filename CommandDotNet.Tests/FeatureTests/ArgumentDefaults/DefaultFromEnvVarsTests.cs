@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.Specialized;
-using CommandDotNet.TestTools;
+using CommandDotNet.Tests.Utils;
 using CommandDotNet.TestTools.Scenarios;
 using Xunit;
 using Xunit.Abstractions;
@@ -9,11 +9,9 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
 {
     public class DefaultFromEnvVarsTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public DefaultFromEnvVarsTests(ITestOutputHelper testOutputHelper)
+        public DefaultFromEnvVarsTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
         
         [Theory]
@@ -40,19 +38,19 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
             var scenario = includes
                 ? new Scenario
                 {
-                    WhenArgs = "ByAttribute -h",
-                    Then = { ResultsContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
+                    When = {Args = "ByAttribute -h"},
+                    Then = { OutputContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
                 }
                 : new Scenario
                 {
-                    WhenArgs = "ByAttribute -h",
-                    Then = { ResultsNotContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
+                    When = {Args = "ByAttribute -h"},
+                    Then = { OutputNotContainsTexts = { $"{nameToInclude}  <TEXT>  [red]" } }
                 };
 
             new AppRunner<App>()
                 .UseDefaultsFromEnvVar(
                     new Dictionary<string,string> { { key, "red" } })
-                .VerifyScenario(_testOutputHelper, scenario);
+                .Verify(scenario);
         }
 
         [Theory]
@@ -65,21 +63,18 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
                 {key, value}
             };
 
-            var scenario = new Scenario
-            {
-                WhenArgs = args,
-                Then = { Outputs = { value.Split(',') } }
-            };
-
+            var expectedParamValues = value.Split(',');
             new AppRunner<App>()
                 .UseDefaultsFromAppSetting(nvc, includeNamingConventions: true)
-                .VerifyScenario(_testOutputHelper, scenario);
+                .Verify(new Scenario
+                {
+                    When = {Args = args},
+                    Then = {AssertContext = ctx => ctx.ParamValuesShouldBe(new object[] {expectedParamValues})}
+                });
         }
 
         public class App
         {
-            private TestOutputs TestOutputs { get; set; }
-
             public void ByAttribute(
                 [EnvVar("opt1")] [Option(LongName = "option1", ShortName = "o")]
                 string option1,
@@ -94,7 +89,6 @@ namespace CommandDotNet.Tests.FeatureTests.ArgumentDefaults
 
             public void List(string[] planets)
             {
-                TestOutputs.CaptureIfNotNull(planets);
             }
         }
     }

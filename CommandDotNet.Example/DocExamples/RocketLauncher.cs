@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using CommandDotNet.Extensions;
 
 namespace CommandDotNet.Example.DocExamples
 {

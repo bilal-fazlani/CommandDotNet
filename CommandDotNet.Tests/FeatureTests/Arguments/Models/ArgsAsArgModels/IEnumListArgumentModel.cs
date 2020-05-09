@@ -5,6 +5,6 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments.Models.ArgsAsArgModels
 {
     public interface IEnumListArgumentModel : IArgumentModel
     {
-        List<DayOfWeek> EnumListArg { get; set; }
+        List<DayOfWeek>? EnumListArg { get; set; }
     }
 }

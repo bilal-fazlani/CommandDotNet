@@ -6,7 +6,7 @@ namespace CommandDotNet.Tokens
 {
     public static class Tokenizer
     {
-        internal const string SeparatorString = "--";
+        internal static Token SeparatorToken { get; } = new Token("--", "--", TokenType.Separator);
 
         public static TokenCollection Tokenize(this IEnumerable<string> args, bool includeDirectives = false, string sourceName = "args")
         {
@@ -15,17 +15,16 @@ namespace CommandDotNet.Tokens
 
         public static Token Tokenize(string arg, bool includeDirectives = false, string sourceName = "args")
         {
-            Token token;
-            token = (includeDirectives && TryTokenizeDirective(arg, out token))
-                                || TryTokenizeSeparator(arg, out token)
-                                || TryTokenizeOption(arg, out token)
-                ? token
+            Token token = (includeDirectives && TryTokenizeDirective(arg, out Token? parsedToken))
+                                || TryTokenizeSeparator(arg, out parsedToken)
+                                || TryTokenizeOption(arg, out parsedToken)
+                ? parsedToken!
                 : TokenizeValue(arg);
             token.SourceName = sourceName;
             return token;
         }
 
-        public static bool TryTokenizeDirective(string arg, out Token token)
+        public static bool TryTokenizeDirective(string arg, out Token? token)
         {
             if (arg.Length > 2 && arg[0] == '[' && arg[arg.Length - 1] == ']')
             {
@@ -37,9 +36,9 @@ namespace CommandDotNet.Tokens
             return false;
         }
 
-        public static bool TryTokenizeSeparator(string arg, out Token token)
+        public static bool TryTokenizeSeparator(string arg, out Token? token)
         {
-            if (arg == SeparatorString)
+            if (arg == SeparatorToken.Value)
             {
                 token = new Token(arg, arg, TokenType.Separator);
                 return true;
@@ -49,7 +48,7 @@ namespace CommandDotNet.Tokens
             return false;
         }
 
-        public static bool TryTokenizeOption(string arg, out Token token)
+        public static bool TryTokenizeOption(string arg, out Token? token)
         {
             if (arg.Length <= 1 || arg[0] != '-' || arg.StartsWith("---"))
             {
@@ -90,13 +89,15 @@ namespace CommandDotNet.Tokens
                 {
                     yield return new Token(arg, arg, TokenType.Value){SourceName = sourceName};
                 }
+                else
+                {
+                    var token = Tokenize(arg, includeDirectives, sourceName);
 
-                var token = Tokenize(arg, includeDirectives, sourceName);
+                    includeDirectives = includeDirectives && token.TokenType == TokenType.Directive;
+                    foundSeparator = token.TokenType == TokenType.Separator;
 
-                includeDirectives = includeDirectives && token.TokenType == TokenType.Directive;
-                foundSeparator = token.TokenType == TokenType.Separator;
-
-                yield return token;
+                    yield return token;
+                }
             }
         }
     }

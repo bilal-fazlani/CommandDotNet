@@ -1,16 +1,16 @@
-﻿using System.Linq;
+﻿using System;
 using System.Threading.Tasks;
 using CommandDotNet.Execution;
-using CommandDotNet.Extensions;
 
 namespace CommandDotNet.Builders
 {
     internal static class DependencyResolverMiddleware
     {
-        internal static AppRunner UseDependencyResolver(AppRunner appRunner, IDependencyResolver dependencyResolver,
+        internal static AppRunner UseDependencyResolver(AppRunner appRunner, 
+            IDependencyResolver dependencyResolver,
+            Func<CommandContext, IDisposable>? runInScope,
             ResolveStrategy argumentModelResolveStrategy,
-            ResolveStrategy commandClassResolveStrategy,
-            bool useLegacyInjectDependenciesAttribute)
+            ResolveStrategy commandClassResolveStrategy)
         {
             return appRunner.Configure(c =>
             {
@@ -20,36 +20,31 @@ namespace CommandDotNet.Builders
                     ArgumentModelResolveStrategy = argumentModelResolveStrategy,
                     CommandClassResolveStrategy = commandClassResolveStrategy
                 });
-                if (useLegacyInjectDependenciesAttribute)
+                if (runInScope != null)
                 {
-                    c.UseMiddleware(LegacyInjectPropertiesDependencies, MiddlewareStages.PostBindValuesPreInvoke);
+                    c.UseMiddleware(RunInScope, MiddlewareSteps.DependencyResolver.BeginScope);
+                    c.Services.Add(new Config(runInScope));
                 }
             });
         }
 
-        internal static Task<int> LegacyInjectPropertiesDependencies(CommandContext commandContext, ExecutionDelegate next)
+        private static Task<int> RunInScope(CommandContext context, ExecutionDelegate next)
         {
-            var resolver = commandContext.AppConfig.DependencyResolver;
-            if (resolver != null)
+            var config = context.AppConfig.Services.GetOrThrow<Config>();
+            using (config.RunInScopeCallback(context))
             {
-                commandContext.InvocationPipeline.All
-                    .Select(i => i.Instance)
-                    .ForEach(instance =>
-                    {
-                        //detect injection properties
-                        var properties = instance.GetType().GetDeclaredProperties<InjectPropertyAttribute>().ToList();
-
-                        if (properties.Any())
-                        {
-                            foreach (var propertyInfo in properties)
-                            {
-                                propertyInfo.SetValue(instance, resolver.Resolve(propertyInfo.PropertyType));
-                            }
-                        }
-                    });
+                return next(context);
             }
+        }
 
-            return next(commandContext);
+        private class Config
+        {
+            public Func<CommandContext, IDisposable> RunInScopeCallback;
+
+            public Config(Func<CommandContext, IDisposable> runInScopeCallback)
+            {
+                RunInScopeCallback = runInScopeCallback ?? throw new ArgumentNullException(nameof(runInScopeCallback));
+            }
         }
     }
 }

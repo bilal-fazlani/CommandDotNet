@@ -20,7 +20,7 @@
 
         internal static class TypeDisplayNames
         {
-            public static readonly string Flag = null;
+            public static readonly string Flag = "";
 
             public static readonly string Number = "Number";
 

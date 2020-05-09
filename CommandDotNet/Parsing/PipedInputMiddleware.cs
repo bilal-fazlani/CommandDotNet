@@ -16,8 +16,8 @@ namespace CommandDotNet.Parsing
         internal static AppRunner AppendPipedInputToOperandList(AppRunner appRunner)
         {
             // -1 to ensure this middleware runs before any prompting so the value won't appear null
-            return appRunner.Configure(c => c.UseMiddleware(InjectPipedInputToOperandList, 
-                MiddlewareSteps.PipedInput.Stage, MiddlewareSteps.PipedInput.Order));
+            return appRunner.Configure(c => 
+                c.UseMiddleware(InjectPipedInputToOperandList, MiddlewareSteps.PipedInput));
         }
 
         private static Task<int> InjectPipedInputToOperandList(CommandContext ctx, ExecutionDelegate next)
@@ -36,10 +36,10 @@ namespace CommandDotNet.Parsing
                 // 4. piped values can be merged with args passed to the command.
                 //    this can become an option passed into appBuilder.EnablePipedInput(...)
                 //    if a need arises to throw instead of merge
-                var operand = ctx.ParseResult.TargetCommand.Operands
+                var operand = ctx.ParseResult!.TargetCommand.Operands
                     .FirstOrDefault(o => o.Arity.AllowsMany());
 
-                if (operand == null)
+                if (operand is null)
                 {
                     Log.DebugFormat("No list operands found for {0}", ctx.ParseResult.TargetCommand.Name);
                 }
@@ -55,7 +55,7 @@ namespace CommandDotNet.Parsing
 
         public static IEnumerable<string> GetPipedInput(IConsole console)
         {
-            Func<string> readLine = console.In.ReadLine;
+            Func<string?> readLine = console.In.ReadLine;
             return readLine.EnumeratePipedInput();
         }
     }

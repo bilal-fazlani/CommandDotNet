@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using CommandDotNet.NameCasing;
 using CommandDotNet.TestTools.Scenarios;
 using FluentAssertions;
@@ -9,11 +9,9 @@ namespace CommandDotNet.Tests.CommandDotNet.NameCasing
 {
     public class CaseTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public CaseTests(ITestOutputHelper testOutputHelper)
+        public CaseTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
 
         [Theory]
@@ -31,7 +29,7 @@ namespace CommandDotNet.Tests.CommandDotNet.NameCasing
         {
             var result = new AppRunner<App>()
                 .UseNameCasing(@case)
-                .RunInMem(new[] {commandName}, _testOutputHelper);
+                .RunInMem(new[] {commandName});
 
             result.ExitCode.Should().Be(10);
         }
@@ -48,7 +46,7 @@ namespace CommandDotNet.Tests.CommandDotNet.NameCasing
             var args = new[] { commandName, messageName, "m", senderName, "s", priorotyName, "3", cName, "4" };
             var result = new AppRunner<App>()
                 .UseNameCasing(@case)
-                .RunInMem(args, _testOutputHelper);
+                .RunInMem(args);
             
             result.ExitCode.Should().Be(10);
         }
@@ -63,7 +61,7 @@ namespace CommandDotNet.Tests.CommandDotNet.NameCasing
         {
             var result = new AppRunner<App>()
                 .UseNameCasing(@case)
-                .RunInMem(new[] { commandName, notificationCommandName }, _testOutputHelper);
+                .RunInMem(new[] { commandName, notificationCommandName });
             
             result.ExitCode.Should().Be(10);
         }
@@ -89,12 +87,12 @@ namespace CommandDotNet.Tests.CommandDotNet.NameCasing
 
             new AppRunner<App2>()
                 .UseNameCasing(@case, applyToNameOverrides)
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "-h",
+                    When = {Args = "-h"},
                     Then =
                     {
-                        ResultsContainsTexts = commandNames.ToList()
+                        OutputContainsTexts = commandNames.ToList()
                     }
                 });
         }

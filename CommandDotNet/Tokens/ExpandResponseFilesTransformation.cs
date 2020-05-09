@@ -25,6 +25,12 @@ namespace CommandDotNet.Tokens
             }
             else
             {
+                var fullPath = Path.GetFullPath(filePath);
+                if (!File.Exists(fullPath))
+                {
+                    throw new FileNotFoundException($"File not found: {fullPath}");
+                }
+
                 var splitter = CommandLineStringSplitter.Instance;
                 var tokens = File
                     .ReadAllLines(filePath)
@@ -39,14 +45,11 @@ namespace CommandDotNet.Tokens
             }
         }
 
-        private static string GetFilePath(Token token)
+        private static string? GetFilePath(Token token)
         {
-            if (token.TokenType == TokenType.Value && token.Value.StartsWith("@"))
-            {
-                return token.Value.Substring(1);
-            }
-
-            return null;
+            return token.TokenType == TokenType.Value && token.Value.StartsWith("@") 
+                ? token.Value.Substring(1) 
+                : null;
         }
 
         private static bool IsCommentOrNullOrWhitespace(this string l)

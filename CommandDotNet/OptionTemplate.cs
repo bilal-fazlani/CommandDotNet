@@ -12,14 +12,14 @@ namespace CommandDotNet
         public static string BuildTemplate(Option option, string delimiter = " | ")
             => Build(option.LongName, option.ShortName, delimiter);
 
-        public static string Build(string longName, char? shortName, string delimiter = " | ")
+        public static string Build(string? longName, char? shortName, string delimiter = " | ")
         {
             var sb = new StringBuilder();
 
-            void AppendIfNotNull(string prefix, string value)
+            void AppendIfNotNull(string prefix, string? value)
             {
                 if (value.IsNullOrWhitespace()) return;
-                if (sb.Length > 0) sb.Append(delimiter);
+                if (sb!.Length > 0) sb.Append(delimiter);
                 sb.Append(prefix);
                 sb.Append(value);
             }

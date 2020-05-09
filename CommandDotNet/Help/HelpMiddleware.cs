@@ -10,8 +10,9 @@ namespace CommandDotNet.Help
         {
             return appRunner.Configure(c =>
             {
+                c.UseMiddleware(CheckIfShouldShowHelp, MiddlewareSteps.Help.CheckIfShouldShowHelp);
+                c.UseMiddleware(PrintHelp, MiddlewareSteps.Help.PrintHelpOnExit);
                 c.BuildEvents.OnCommandCreated += AddHelpOption;
-                c.UseMiddleware(DisplayHelp, MiddlewareSteps.Help.Stage, MiddlewareSteps.Help.Order);
             });
         }
 
@@ -24,52 +25,58 @@ namespace CommandDotNet.Help
 
             var appSettingsHelp = args.CommandContext.AppConfig.AppSettings.Help;
 
-            var option = new Option(Constants.HelpOptionName, 'h', 
-                TypeInfo.Flag, ArgumentArity.Zero, 
-                aliases: new []{"?"}, 
+            var option = new Option(Constants.HelpOptionName, 'h',
+                TypeInfo.Flag, ArgumentArity.Zero,
+                aliases: new[] { "?" },
                 definitionSource: typeof(HelpMiddleware).FullName)
             {
                 Description = "Show help information",
                 IsMiddlewareOption = true,
-                ShowInHelp = appSettingsHelp.PrintHelpOption
+                Hidden = !appSettingsHelp.PrintHelpOption
             };
 
             args.CommandBuilder.AddArgument(option);
         }
 
-        private static Task<int> DisplayHelp(CommandContext commandContext, ExecutionDelegate next)
+        private static Task<int> CheckIfShouldShowHelp(CommandContext ctx, ExecutionDelegate next)
         {
-            var parseResult = commandContext.ParseResult;
+            var parseResult = ctx.ParseResult!;
             var targetCommand = parseResult.TargetCommand;
 
             if (parseResult.ParseError != null)
             {
-                var console = commandContext.Console;
+                var console = ctx.Console;
                 console.Error.WriteLine(parseResult.ParseError.Message);
                 console.Error.WriteLine();
-                Print(commandContext, targetCommand);
-                return Task.FromResult(1);
+                ctx.ShowHelpOnExit = true;
+                return ExitCodes.Error;
             }
 
             if (parseResult.HelpWasRequested())
             {
-                Print(commandContext, targetCommand);
-                return Task.FromResult(0);
+                ctx.ShowHelpOnExit = true;
+                return ExitCodes.Success;
             }
 
             if (!targetCommand.IsExecutable)
             {
-                Print(commandContext, targetCommand);
-                return Task.FromResult(0);
+                ctx.ShowHelpOnExit = true;
+                return ExitCodes.Success;
             }
 
-            return next(commandContext);
+            return next(ctx);
         }
 
-        private static void Print(CommandContext commandContext, Command command)
+        private static Task<int> PrintHelp(CommandContext ctx, ExecutionDelegate next)
         {
-            var helpText = commandContext.AppConfig.HelpProvider.GetHelpText(command);
-            commandContext.Console.Out.WriteLine(helpText);
+            var result = next(ctx);
+
+            if (ctx.ShowHelpOnExit)
+            {
+                ctx.PrintHelp();
+            }
+
+            return result;
         }
     }
 }

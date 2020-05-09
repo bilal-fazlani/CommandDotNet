@@ -13,12 +13,12 @@ namespace CommandDotNet.ClassModeling.Definitions
 
         public string Name { get; }
         public string SourcePath => _delegate.Method.FullName(includeNamespace: true);
-        public Type CommandHostClassType { get; } = null;
+        public Type? CommandHostClassType { get; } = null;
         public ICustomAttributeProvider CustomAttributes => _delegate.Method;
         public bool IsExecutable => true;
         public bool HasInterceptor => false;
         public IReadOnlyCollection<ICommandDef> SubCommands { get; } = new List<ICommandDef>().AsReadOnly();
-        public IMethodDef InterceptorMethodDef { get; }
+        public IMethodDef? InterceptorMethodDef { get; } = null;
         public IMethodDef InvokeMethodDef { get; }
 
         public DelegateCommandDef(string name, Delegate handlerDelegate, AppConfig appConfig)
@@ -26,7 +26,6 @@ namespace CommandDotNet.ClassModeling.Definitions
             _delegate = handlerDelegate;
             
             Name = name;
-            InterceptorMethodDef = NullMethodDef.Instance;
             InvokeMethodDef = new MethodDef(handlerDelegate.Method, appConfig);
         }
 

@@ -18,13 +18,13 @@ namespace CommandDotNet.IoC.SimpleInjector
             return _container.GetInstance(type);
         }
 
-        public bool TryResolve(Type type, out object item)
+        public bool TryResolve(Type type, out object? item)
         {
             // SimpleInjector's GetInstance will throw an exception if type is not registered.
             // Converting to IServiceProvider will return null if not registered.
             // https://stackoverflow.com/questions/10076206/prevent-simple-injector-to-throw-an-exception-when-resolving-an-unregistered-ser
             item = ((IServiceProvider) _container).GetService(type);
-            return item != null;
+            return item is { };
         }
     }
 }

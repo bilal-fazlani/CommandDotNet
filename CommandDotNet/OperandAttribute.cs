@@ -6,13 +6,13 @@ namespace CommandDotNet
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
     public class OperandAttribute : Attribute, INameAndDescription
     {
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
 
         public int CallerLineNumber { get; }
 
         /// <summary>
-        /// 
+        /// Constructs an <see cref="OperandAttribute"/>
         /// </summary>
         /// <param name="__callerLineNumber">
         /// DO NOT USE. Populated by <see cref="CallerLineNumberAttribute"/>.<br/>

@@ -14,19 +14,43 @@ namespace CommandDotNet.Example
                            "Example: %UsageAppName% [debug] [parse] [log:info] cancel-me")]
     internal class Examples
     {
+        private static bool _inSession;
+
+        [DefaultMethod]
+        public void StartSession(
+            CommandContext context,
+            InteractiveSession interactiveSession, 
+            [Option(ShortName = "i")] bool interactive)
+        {
+            if (interactive && !_inSession)
+            {
+                context.Console.WriteLine("start session");
+                _inSession = true;
+                interactiveSession.Start();
+            }
+            else
+            {
+                context.Console.WriteLine($"no session {interactive} {_inSession}");
+                context.ShowHelpOnExit = true;
+            }
+        }
+        
         [SubCommand]
-        public Git Git { get; set; }
+        public Git Git { get; set; } = null!;
 
         [SubCommand]
-        public Models Models { get; set; }
+        public Math Math { get; set; } = null!;
 
         [SubCommand]
-        public Pipes Pipes { get; set; }
+        public Models Models { get; set; } = null!;
 
         [SubCommand]
-        public CancelMe CancelMe { get; set; }
+        public Pipes Pipes { get; set; } = null!;
 
         [SubCommand]
-        public Commands.Prompts Prompts { get; set; }
+        public CancelMe CancelMe { get; set; } = null!;
+
+        [SubCommand]
+        public Commands.Prompts Prompts { get; set; } = null!;
     }
 }

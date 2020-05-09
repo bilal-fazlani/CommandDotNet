@@ -18,17 +18,17 @@ namespace CommandDotNet
         /// </summary>
         public bool IsStream { get; }
 
-        private IEnumerable<string> _values;
+        private IEnumerable<string>? _values;
 
         /// <summary>The text values</summary>
-        public IEnumerable<string> Values
+        public IEnumerable<string>? Values
         {
             get => _values ?? ValuesFromTokens?.Select(v => v.Value);
             set => _values = value;
         }
 
-        /// <summary>The text values</summary>
-        public IEnumerable<ValueFromToken> ValuesFromTokens { get; set; }
+        /// <summary>The values with tokens of origin</summary>
+        public IEnumerable<ValueFromToken>? ValuesFromTokens { get; set; }
 
         public InputValue(string source, bool isStream, IEnumerable<string> values)
         {

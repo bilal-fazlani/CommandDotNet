@@ -6,11 +6,9 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
 {
     public class ParseDirective_Transforms_Tests
     {
-        private readonly ITestOutputHelper _output;
-
         public ParseDirective_Transforms_Tests(ITestOutputHelper output)
         {
-            _output = output;
+            Ambient.Output = output;
         }
 
         [Fact]
@@ -18,12 +16,12 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
         {
             new AppRunner<App>()
                 .UseParseDirective()
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "[parse:t] Do",
+                    When = {Args = "[parse:t] Do"},
                     Then =
                     {
-                        ResultsContainsTexts = { @"token transformations:
+                        OutputContainsTexts = { @"token transformations:
 
 >>> from shell
   Directive: [parse:t]
@@ -39,13 +37,13 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
         {
             new AppRunner<App>()
                 .UseParseDirective()
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "[parse:t] Do -abc --one two --three:four --five=six seven",
+                    When = {Args = "[parse:t] Do -abc --one two --three:four --five=six seven"},
                     Then =
                     {
                         ExitCode = 1,
-                        ResultsContainsTexts = { @"token transformations:
+                        OutputContainsTexts = { @"token transformations:
 
 >>> from shell
   Directive: [parse:t]

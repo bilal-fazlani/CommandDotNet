@@ -25,7 +25,7 @@ namespace CommandDotNet.Tests.FeatureTests.EnabledMiddlewareScenarios
             ExecutionDelegate next, 
             IDictionary<string, object> defaults)
         {
-            if (context.ParseResult.ParseError != null)
+            if (context.ParseResult!.ParseError != null)
             {
                 return next(context);
             }
@@ -34,7 +34,7 @@ namespace CommandDotNet.Tests.FeatureTests.EnabledMiddlewareScenarios
             var interceptor = command.Parent;
 
             var arguments = command.Options.Cast<IArgument>().Union(command.Operands);
-            if (interceptor != null)
+            if (interceptor is { })
             {
                 arguments = arguments.Union(interceptor.Options).Union(interceptor.Operands);
             }

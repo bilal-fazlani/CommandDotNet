@@ -21,7 +21,7 @@ namespace CommandDotNet.Tests.UnitTests.Extensions
         public void SwitchAct_ForNullArg_Should_ThrowNullRef()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                ((IArgument) null).SwitchAct(
+                ((IArgument) null!).SwitchAct(
                     o => Assert.True(false, "operandAction should not be called for operand"),
                     o => Assert.True(false, "optionAction should not be called for operand"))
             );
@@ -55,7 +55,7 @@ namespace CommandDotNet.Tests.UnitTests.Extensions
         public void SwitchFunc_ForNullArg_Should_ThrowNullRef()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                ((IArgument)null).SwitchFunc(
+                ((IArgument)null!).SwitchFuncStruct(
                     o => 0,
                     o => 0)
             );
@@ -64,7 +64,7 @@ namespace CommandDotNet.Tests.UnitTests.Extensions
         [Fact]
         public void SwitchFunc_ForOperand_Should_ExecuteOnlyOperandFuncion()
         {
-            var result = AnOperand.SwitchFunc(
+            var result = AnOperand.SwitchFuncStruct(
                 o => 1,
                 o => 0);
 
@@ -74,7 +74,7 @@ namespace CommandDotNet.Tests.UnitTests.Extensions
         [Fact]
         public void SwitchFunc_ForOption_Should_ExecuteOnlyOptionFuncion()
         {
-            var result = AnOption.SwitchFunc(
+            var result = AnOption.SwitchFuncStruct(
                 o => 0,
                 o => 1);
 

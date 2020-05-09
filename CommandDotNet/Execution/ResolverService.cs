@@ -10,7 +10,7 @@ namespace CommandDotNet.Execution
     {
         internal ResolveStrategy ArgumentModelResolveStrategy { get; set; }
         internal ResolveStrategy CommandClassResolveStrategy { get; set; }
-        internal IDependencyResolver BackingResolver { private get; set; }
+        internal IDependencyResolver? BackingResolver { private get; set; }
 
         internal object ResolveArgumentModel(Type modelType)
         {
@@ -21,7 +21,7 @@ namespace CommandDotNet.Execution
             // via the container, perhaps from configuration
             // sources.
             return ConditionalTryResolve(modelType, out var item, ArgumentModelResolveStrategy)
-                ? item
+                ? item!
                 : Activator.CreateInstance(modelType);
         }
 
@@ -32,7 +32,7 @@ namespace CommandDotNet.Execution
             // be created by this framework. 
             if (ConditionalTryResolve(classType, out var item, CommandClassResolveStrategy))
             {
-                return item;
+                return item!;
             }
 
             var parameterResolversByType = commandContext.AppConfig.ParameterResolversByType;
@@ -70,10 +70,10 @@ namespace CommandDotNet.Execution
         {
             // When we support a cli session, we'll need to capture exceptions here
             // and best effort dispose of all instances
-            commandContext.Services.Get<Disposables>()?.Items.ForEach(i => i.Dispose());
+            commandContext.Services.GetOrDefault<Disposables>()?.Items.ForEach(i => i.Dispose());
         }
 
-        private bool ConditionalTryResolve(Type type, out object item, ResolveStrategy resolveStrategy)
+        private bool ConditionalTryResolve(Type type, out object? item, ResolveStrategy resolveStrategy)
         {
             if (BackingResolver == null)
             {

@@ -6,11 +6,11 @@ namespace CommandDotNet
     public class ValueProxy
     {
         /// <summary>The function to get the value</summary>
-        public Func<object> Getter { get; }
+        public Func<object?> Getter { get; }
         /// <summary>The function to set the value</summary>
-        public Action<object> Setter { get; }
+        public Action<object?> Setter { get; }
 
-        public ValueProxy(Func<object> getter, Action<object> setter)
+        public ValueProxy(Func<object?> getter, Action<object?> setter)
         {
             Getter = getter;
             Setter = setter;

@@ -30,7 +30,7 @@ namespace CommandDotNet.Tests.UnitTests.Framework
         {
             var services = new Services();
             services.Add(this);
-            services.Get<ServicesTests>().Should().Be(this);
+            services.GetOrDefault<ServicesTests>().Should().Be(this);
         }
 
         [Fact]
@@ -38,7 +38,7 @@ namespace CommandDotNet.Tests.UnitTests.Framework
         {
             var services = new Services();
             services.Add(this);
-            services.Get(this.GetType()).Should().Be(this);
+            services.GetOrDefault(this.GetType()).Should().Be(this);
         }
 
         [Fact]
@@ -46,34 +46,34 @@ namespace CommandDotNet.Tests.UnitTests.Framework
         {
             var services = new Services();
             services.Add(this);
-            services.Get(services.GetType()).Should().BeNull();
+            services.GetOrDefault(services.GetType()).Should().BeNull();
         }
 
         [Fact]
         public void GivenNewInstance_AddWithType_Should_AddService()
         {
             var services = new Services();
-            services.Get(this.GetType()).Should().BeNull();
+            services.GetOrDefault(this.GetType()).Should().BeNull();
             services.Add(this.GetType(), this);
-            services.Get(this.GetType()).Should().Be(this);
+            services.GetOrDefault(this.GetType()).Should().Be(this);
         }
 
         [Fact]
         public void GivenNewInstance_AddOrUpdate_Should_AddService()
         {
             var services = new Services();
-            services.Get(this.GetType()).Should().BeNull();
+            services.GetOrDefault(this.GetType()).Should().BeNull();
             services.AddOrUpdate(this);
-            services.Get(this.GetType()).Should().Be(this);
+            services.GetOrDefault(this.GetType()).Should().Be(this);
         }
 
         [Fact]
         public void GivenNewInstance_AddOrUpdateWithType_Should_AddService()
         {
             var services = new Services();
-            services.Get(this.GetType()).Should().BeNull();
+            services.GetOrDefault(this.GetType()).Should().BeNull();
             services.AddOrUpdate(this.GetType(), this);
-            services.Get(this.GetType()).Should().Be(this);
+            services.GetOrDefault(this.GetType()).Should().Be(this);
         }
 
         [Fact]
@@ -95,24 +95,24 @@ namespace CommandDotNet.Tests.UnitTests.Framework
 
             var services = new Services();
             services.Add(uri1);
-            services.Get<Uri>().Should().Be(uri1);
+            services.GetOrDefault<Uri>().Should().Be(uri1);
             services.AddOrUpdate(uri2);
-            services.Get<Uri>().Should().Be(uri2);
+            services.GetOrDefault<Uri>().Should().Be(uri2);
         }
 
         [Fact]
         public void GivenServiceOfTypeExists_Add_UsingAnInterface_Should_AddService()
         {
-            var methodDef = (NullMethodDef) NullMethodDef.Instance;
+            var operand = new Operand("lala", TypeInfo.Flag, ArgumentArity.ZeroOrOne);
 
             var services = new Services();
-            services.Add(methodDef);
-            services.Add<IMethodDef>(methodDef);
+            services.Add(operand);
+            services.Add<IArgument>(operand);
 
             var svcs = services.GetAll();
             svcs.Count.Should().Be(2);
-            svcs.Should().Contain(kvp => kvp.Key == typeof(IMethodDef));
-            svcs.Should().Contain(kvp => kvp.Key == typeof(NullMethodDef));
+            svcs.Should().Contain(kvp => kvp.Key == typeof(IArgument));
+            svcs.Should().Contain(kvp => kvp.Key == typeof(Operand));
         }
     }
 }

@@ -170,7 +170,7 @@ namespace CommandDotNet.Prompts
             return values;
         }
 
-        private ICollection<string> PromptForValueSimpleImpl(
+        private ICollection<string>? PromptForValueSimpleImpl(
             string promptText, bool isPassword,
             bool isList, out bool isCancellationRequested)
         {
@@ -195,6 +195,10 @@ namespace CommandDotNet.Prompts
 
             var value = _console.In.ReadLine();
             consoleOut.WriteLine();
+            if (value is null)
+            {
+                return null;
+            }
             return isList
                 ? CommandLineStringSplitter.Instance.Split(value).ToCollection()
                 : new[] { value };

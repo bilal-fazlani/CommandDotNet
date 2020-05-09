@@ -2,13 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
 using CommandDotNet.Builders;
 using CommandDotNet.Builders.ArgumentDefaults;
 using CommandDotNet.ClassModeling.Definitions;
-using CommandDotNet.Directives;
+using CommandDotNet.Diagnostics;
 using CommandDotNet.Execution;
 using CommandDotNet.Parsing;
+using CommandDotNet.Parsing.Typos;
 using CommandDotNet.Prompts;
 using CommandDotNet.Tokens;
 
@@ -17,6 +17,9 @@ namespace CommandDotNet
     /// <summary>Extensions to enable and configure features</summary>
     public static class AppRunnerConfigExtensions
     {
+        internal static bool InUseDefaultMiddleware => !ExcludeParamName.IsNullOrWhitespace();
+        internal static string? ExcludeParamName { get; private set; }
+        
         /// <summary>
         /// Configures the <see cref="AppRunner"/> with the 'default' set of middleware.
         /// See the 'exclude...' parameters for the list of included middleware.
@@ -31,15 +34,46 @@ namespace CommandDotNet
             bool excludeAppendPipedInputToOperandList = false,
             bool excludeTypoSuggestions = false)
         {
-            if (!excludeCancellationHandlers) appRunner.UseCancellationHandlers();
-            if (!excludeDebugDirective) appRunner.UseDebugDirective();
-            if (!excludeParseDirective) appRunner.UseParseDirective();
-            if (!excludePrompting) appRunner.UsePrompting();
-            if (!excludeResponseFiles) appRunner.UseResponseFiles();
-            if (!excludeVersionMiddleware) appRunner.UseVersionMiddleware();
-            if (!excludeAppendPipedInputToOperandList) appRunner.AppendPipedInputToOperandList();
-            if (!excludeTypoSuggestions) appRunner.UseTypoSuggestions();
-
+            static void Register(bool exclude, string paramName, Action register)
+            {
+                if (exclude) return;
+                ExcludeParamName = paramName;
+                register();
+                ExcludeParamName = null;
+            }
+            
+            Register(
+                excludeCancellationHandlers, 
+                nameof(excludeCancellationHandlers),
+                ()=> appRunner.UseCancellationHandlers());
+            Register(
+                excludeDebugDirective, 
+                nameof(excludeDebugDirective),
+                ()=> appRunner.UseDebugDirective());
+            Register(
+                excludeParseDirective, 
+                nameof(excludeParseDirective),
+                ()=> appRunner.UseParseDirective());
+            Register(
+                excludePrompting, 
+                nameof(excludePrompting),
+                ()=> appRunner.UsePrompting());
+            Register(
+                excludeResponseFiles, 
+                nameof(excludeResponseFiles),
+                ()=> appRunner.UseResponseFiles());
+            Register(
+                excludeVersionMiddleware, 
+                nameof(excludeVersionMiddleware),
+                ()=> appRunner.UseVersionMiddleware());
+            Register(
+                excludeAppendPipedInputToOperandList, 
+                nameof(excludeAppendPipedInputToOperandList),
+                ()=> appRunner.AppendPipedInputToOperandList());
+            Register(
+                excludeTypoSuggestions, 
+                nameof(excludeTypoSuggestions),
+                ()=> appRunner.UseTypoSuggestions());
             return appRunner;
         }
 
@@ -88,38 +122,16 @@ namespace CommandDotNet
         /// the <see cref="ResolveStrategy"/> used to resolve <see cref="IArgumentModel"/>s.</param>
         /// <param name="commandClassResolveStrategy">
         /// the <see cref="ResolveStrategy"/> used to resolve command classes. </param>
-        /// <param name="useLegacyInjectDependenciesAttribute"> 
-        /// when true, resolve instances for properties marked with [InjectProperty].
-        /// This feature is deprecated and may be removed with next major release.
-        /// </param>
         public static AppRunner UseDependencyResolver(
             this AppRunner appRunner, 
             IDependencyResolver dependencyResolver,
-            Func<CommandContext, IDisposable> runInScope = null,
+            Func<CommandContext, IDisposable>? runInScope = null,
             ResolveStrategy argumentModelResolveStrategy = ResolveStrategy.TryResolve,
-            ResolveStrategy commandClassResolveStrategy = ResolveStrategy.Resolve,
-            bool useLegacyInjectDependenciesAttribute = false)
+            ResolveStrategy commandClassResolveStrategy = ResolveStrategy.Resolve)
         {
-            DependencyResolverMiddleware.UseDependencyResolver(appRunner, dependencyResolver,
-                argumentModelResolveStrategy, commandClassResolveStrategy, useLegacyInjectDependenciesAttribute);
-
-            if (runInScope != null)
-            {
-                appRunner.Configure(b =>
-                {
-                    b.UseMiddleware((context, next) =>
-                        {
-                            using (runInScope(context))
-                            {
-                                return next(context);
-                            }
-                        }, 
-                        MiddlewareSteps.DependencyResolver.BeginScope.Stage, 
-                        MiddlewareSteps.DependencyResolver.BeginScope.Order);
-                });
-            }
-
-            return appRunner;
+            return DependencyResolverMiddleware.UseDependencyResolver(
+                appRunner, dependencyResolver, runInScope,
+                argumentModelResolveStrategy, commandClassResolveStrategy);
         }
 
         /// <summary>
@@ -139,10 +151,10 @@ namespace CommandDotNet
         /// </param>
         public static AppRunner UsePrompting(
             this AppRunner appRunner,
-            Func<CommandContext, IPrompter> prompterOverride = null,
+            Func<CommandContext, IPrompter>? prompterOverride = null,
             bool promptForMissingArguments = true,
-            Func<CommandContext, IArgument, string> argumentPromptTextOverride = null,
-            Predicate<IArgument> argumentFilter = null)
+            Func<CommandContext, IArgument, string>? argumentPromptTextOverride = null,
+            Predicate<IArgument>? argumentFilter = null)
         {
             return ValuePromptMiddleware.UsePrompting(appRunner, prompterOverride, promptForMissingArguments, argumentPromptTextOverride, argumentFilter);
         }
@@ -159,7 +171,7 @@ namespace CommandDotNet
         }
 
         /// <summary>
-        /// Sets <see cref="AppConfig.CancellationToken"/> and cancels the token on
+        /// Sets <see cref="CommandContext.CancellationToken"/> and cancels the token on
         /// <see cref="Console.CancelKeyPress"/>, <see cref="AppDomain.ProcessExit"/> and
         /// <see cref="AppDomain.UnhandledException"/> if <see cref="UnhandledExceptionEventArgs.IsTerminating"/> is true.<br/>
         /// Once cancelled, the pipelines will not progress to the next step.
@@ -194,27 +206,35 @@ namespace CommandDotNet
         /// When <see cref="EnvVarAttribute"/> is present, looks for the key in the provided envVars config.<br/>
         /// If envVars is not provided the default <see cref="Environment.GetEnvironmentVariables()"/>
         /// </summary>
-        public static AppRunner UseDefaultsFromEnvVar(this AppRunner appRunner, IDictionary envVars = null)
+        public static AppRunner UseDefaultsFromEnvVar(this AppRunner appRunner, IDictionary? envVars = null)
         {
             return appRunner.UseDefaultsFromConfig(
                 DefaultSources.EnvVar.GetDefaultValue(envVars, DefaultSources.EnvVar.GetKeyFromAttribute));
         }
 
-        [Obsolete("Use the UseDefaultsFromConfig that returns ArgumentDefaults")]
-        public static AppRunner UseDefaultsFromConfig(this AppRunner appRunner,
-            params Func<IArgument, string>[] getDefaultValueCallbacks)
-        {
-            Func<IArgument, ArgumentDefault> Convert(Func<IArgument, string> function)
-            {
-                return arg => new ArgumentDefault("UseDefaultsFromConfig", "", function(arg));
-            }
-            return UseDefaultsFromConfig(appRunner, getDefaultValueCallbacks.Select(Convert).ToArray());
-        }
-
         /// <summary>Provide your own strategies for setting argument defaults from a configuration source</summary>
         public static AppRunner UseDefaultsFromConfig(this AppRunner appRunner,
-            params Func<IArgument, ArgumentDefault>[] getDefaultValueCallbacks)
+            params Func<IArgument, ArgumentDefault?>[] getDefaultValueCallbacks)
             => SetArgumentDefaultsMiddleware.SetArgumentDefaultsFrom(appRunner, getDefaultValueCallbacks);
+
+        /// <summary></summary>
+        /// <param name="appRunner">The <see cref="AppRunner"/></param>
+        /// <param name="writerFactory">If null, `cmdlog` directive is enabled without Console.Out as the target</param>
+        /// <param name="excludeSystemInfo">Exclude machine name, username, OS, .net version and tool version</param>
+        /// <param name="includeAppConfig">Prints the entire app configuration</param>
+        /// <param name="additionalInfoCallback">Additional information to include.</param>
+        public static AppRunner UseCommandLogger(this AppRunner appRunner,
+            Func<CommandContext, Action<string?>?>? writerFactory = null,
+            bool excludeSystemInfo = false,
+            bool includeAppConfig = false,
+            Func<CommandContext, IEnumerable<(string key, string value)>?>? additionalInfoCallback = null)
+        {
+            return CommandLoggerMiddleware.UseCommandLogger(appRunner, 
+                writerFactory, 
+                !excludeSystemInfo,
+                includeAppConfig, 
+                additionalInfoCallback);
+        }
 
         /// <summary>
         /// Returns the list of all possible types that could be instantiated to execute commands.<br/>
@@ -227,7 +247,7 @@ namespace CommandDotNet
         {
             if (appRunner.AppSettings.DisableDirectives)
             {
-                throw new AppRunnerException($"Directives are not enabled.  " +
+                throw new AppRunnerException("Directives are not enabled. " +
                                              $"{nameof(AppRunner)}.{nameof(AppRunner.AppSettings)}.{nameof(AppSettings.DisableDirectives)} " +
                                              "must not be set to true");
             }

@@ -1,20 +1,20 @@
 using System;
 using System.Linq;
 using CommandDotNet.Extensions;
-using CommandDotNet.Tests.ScenarioFramework;
-using CommandDotNet.TestTools;
+using CommandDotNet.Tests.Utils;
+using CommandDotNet.TestTools.Scenarios;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CommandDotNet.Tests.FeatureTests.Arguments
 {
-    public class BigArgumentsSetsTests : TestBase
+    public class BigArgumentsSetsTests
     {
         private readonly ITestOutputHelper _output;
 
-        public BigArgumentsSetsTests(ITestOutputHelper output) : base(output)
+        public BigArgumentsSetsTests(ITestOutputHelper output)
         {
-            _output = output;
+            Ambient.Output = _output = output;
         }
 
         private class Names
@@ -38,7 +38,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         [Fact]
         public void AssignmentsRetainOrder()
         {
-            var expectedAssignment = new Model
+            var model = new Model
             {
                 mopt_01 = 1,
                 mopt_02 = 2,
@@ -141,136 +141,26 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
                 marg_49 = 49,
                 marg_50 = 50
             };
-            Verify(new Scenario<App>
+            var numbers = Enumerable.Range(1,50).Cast<object>().ToArray();
+            var paramValues = model.ToEnumerable().Concat(numbers).Concat(numbers).ToArray();
+            new AppRunner<App>().Verify(new Scenario
             {
-                WhenArgs = "Do " +
+                When = {Args = "Do " +
                            "--mopt_01=1 --mopt_02=2 --mopt_03=3 --mopt_04=4 --mopt_05=5 --mopt_06=6 --mopt_07=7 --mopt_08=8 --mopt_09=9 --mopt_10=10 --mopt_11=11 --mopt_12=12 --mopt_13=13 --mopt_14=14 --mopt_15=15 --mopt_16=16 --mopt_17=17 --mopt_18=18 --mopt_19=19 --mopt_20=20 --mopt_21=21 --mopt_22=22 --mopt_23=23 --mopt_24=24 --mopt_25=25 --mopt_26=26 --mopt_27=27 --mopt_28=28 --mopt_29=29 --mopt_30=30 --mopt_31=31 --mopt_32=32 --mopt_33=33 --mopt_34=34 --mopt_35=35 --mopt_36=36 --mopt_37=37 --mopt_38=38 --mopt_39=39 --mopt_40=40 --mopt_41=41 --mopt_42=42 --mopt_43=43 --mopt_44=44 --mopt_45=45 --mopt_46=46 --mopt_47=47 --mopt_48=48 --mopt_49=49 --mopt_50=50 " +
                            "--popt_01=1 --popt_02=2 --popt_03=3 --popt_04=4 --popt_05=5 --popt_06=6 --popt_07=7 --popt_08=8 --popt_09=9 --popt_10=10 --popt_11=11 --popt_12=12 --popt_13=13 --popt_14=14 --popt_15=15 --popt_16=16 --popt_17=17 --popt_18=18 --popt_19=19 --popt_20=20 --popt_21=21 --popt_22=22 --popt_23=23 --popt_24=24 --popt_25=25 --popt_26=26 --popt_27=27 --popt_28=28 --popt_29=29 --popt_30=30 --popt_31=31 --popt_32=32 --popt_33=33 --popt_34=34 --popt_35=35 --popt_36=36 --popt_37=37 --popt_38=38 --popt_39=39 --popt_40=40 --popt_41=41 --popt_42=42 --popt_43=43 --popt_44=44 --popt_45=45 --popt_46=46 --popt_47=47 --popt_48=48 --popt_49=49 --popt_50=50 " +
                            "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 " +
-                           "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 ",
-                Then = {Outputs = {new Assignments {Model = expectedAssignment, Params = expectedAssignment}}}
+                           "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 "},
+                Then = {AssertContext = ctx => ctx.ParamValuesShouldBe(paramValues)}
             });
         }
 
-        public class App
+        private class App
         {
-            private TestOutputs TestOutputs { get; set; }
             public void Do(Model model,
                 [Option] int popt_01, [Option] int popt_02, [Option] int popt_03, [Option] int popt_04, [Option] int popt_05, [Option] int popt_06, [Option] int popt_07, [Option] int popt_08, [Option] int popt_09, [Option] int popt_10, [Option] int popt_11, [Option] int popt_12, [Option] int popt_13, [Option] int popt_14, [Option] int popt_15, [Option] int popt_16, [Option] int popt_17, [Option] int popt_18, [Option] int popt_19, [Option] int popt_20, [Option] int popt_21, [Option] int popt_22, [Option] int popt_23, [Option] int popt_24, [Option] int popt_25, [Option] int popt_26, [Option] int popt_27, [Option] int popt_28, [Option] int popt_29, [Option] int popt_30, [Option] int popt_31, [Option] int popt_32, [Option] int popt_33, [Option] int popt_34, [Option] int popt_35, [Option] int popt_36, [Option] int popt_37, [Option] int popt_38, [Option] int popt_39, [Option] int popt_40, [Option] int popt_41, [Option] int popt_42, [Option] int popt_43, [Option] int popt_44, [Option] int popt_45, [Option] int popt_46, [Option] int popt_47, [Option] int popt_48, [Option] int popt_49, [Option] int popt_50,
 [Operand] int parg_01, [Operand] int parg_02, [Operand] int parg_03, [Operand] int parg_04, [Operand] int parg_05, [Operand] int parg_06, [Operand] int parg_07, [Operand] int parg_08, [Operand] int parg_09, [Operand] int parg_10, [Operand] int parg_11, [Operand] int parg_12, [Operand] int parg_13, [Operand] int parg_14, [Operand] int parg_15, [Operand] int parg_16, [Operand] int parg_17, [Operand] int parg_18, [Operand] int parg_19, [Operand] int parg_20, [Operand] int parg_21, [Operand] int parg_22, [Operand] int parg_23, [Operand] int parg_24, [Operand] int parg_25, [Operand] int parg_26, [Operand] int parg_27, [Operand] int parg_28, [Operand] int parg_29, [Operand] int parg_30, [Operand] int parg_31, [Operand] int parg_32, [Operand] int parg_33, [Operand] int parg_34, [Operand] int parg_35, [Operand] int parg_36, [Operand] int parg_37, [Operand] int parg_38, [Operand] int parg_39, [Operand] int parg_40, [Operand] int parg_41, [Operand] int parg_42, [Operand] int parg_43, [Operand] int parg_44, [Operand] int parg_45, [Operand] int parg_46, [Operand] int parg_47, [Operand] int parg_48, [Operand] int parg_49, [Operand] int parg_50)
             {
-                var paramsModel = new Model
-                {
-                    mopt_01 = popt_01,
-                    mopt_02 = popt_02,
-                    mopt_03 = popt_03,
-                    mopt_04 = popt_04,
-                    mopt_05 = popt_05,
-                    mopt_06 = popt_06,
-                    mopt_07 = popt_07,
-                    mopt_08 = popt_08,
-                    mopt_09 = popt_09,
-                    mopt_10 = popt_10,
-                    mopt_11 = popt_11,
-                    mopt_12 = popt_12,
-                    mopt_13 = popt_13,
-                    mopt_14 = popt_14,
-                    mopt_15 = popt_15,
-                    mopt_16 = popt_16,
-                    mopt_17 = popt_17,
-                    mopt_18 = popt_18,
-                    mopt_19 = popt_19,
-                    mopt_20 = popt_20,
-                    mopt_21 = popt_21,
-                    mopt_22 = popt_22,
-                    mopt_23 = popt_23,
-                    mopt_24 = popt_24,
-                    mopt_25 = popt_25,
-                    mopt_26 = popt_26,
-                    mopt_27 = popt_27,
-                    mopt_28 = popt_28,
-                    mopt_29 = popt_29,
-                    mopt_30 = popt_30,
-                    mopt_31 = popt_31,
-                    mopt_32 = popt_32,
-                    mopt_33 = popt_33,
-                    mopt_34 = popt_34,
-                    mopt_35 = popt_35,
-                    mopt_36 = popt_36,
-                    mopt_37 = popt_37,
-                    mopt_38 = popt_38,
-                    mopt_39 = popt_39,
-                    mopt_40 = popt_40,
-                    mopt_41 = popt_41,
-                    mopt_42 = popt_42,
-                    mopt_43 = popt_43,
-                    mopt_44 = popt_44,
-                    mopt_45 = popt_45,
-                    mopt_46 = popt_46,
-                    mopt_47 = popt_47,
-                    mopt_48 = popt_48,
-                    mopt_49 = popt_49,
-                    mopt_50 = popt_50,
-                    marg_01 = parg_01,
-                    marg_02 = parg_02,
-                    marg_03 = parg_03,
-                    marg_04 = parg_04,
-                    marg_05 = parg_05,
-                    marg_06 = parg_06,
-                    marg_07 = parg_07,
-                    marg_08 = parg_08,
-                    marg_09 = parg_09,
-                    marg_10 = parg_10,
-                    marg_11 = parg_11,
-                    marg_12 = parg_12,
-                    marg_13 = parg_13,
-                    marg_14 = parg_14,
-                    marg_15 = parg_15,
-                    marg_16 = parg_16,
-                    marg_17 = parg_17,
-                    marg_18 = parg_18,
-                    marg_19 = parg_19,
-                    marg_20 = parg_20,
-                    marg_21 = parg_21,
-                    marg_22 = parg_22,
-                    marg_23 = parg_23,
-                    marg_24 = parg_24,
-                    marg_25 = parg_25,
-                    marg_26 = parg_26,
-                    marg_27 = parg_27,
-                    marg_28 = parg_28,
-                    marg_29 = parg_29,
-                    marg_30 = parg_30,
-                    marg_31 = parg_31,
-                    marg_32 = parg_32,
-                    marg_33 = parg_33,
-                    marg_34 = parg_34,
-                    marg_35 = parg_35,
-                    marg_36 = parg_36,
-                    marg_37 = parg_37,
-                    marg_38 = parg_38,
-                    marg_39 = parg_39,
-                    marg_40 = parg_40,
-                    marg_41 = parg_41,
-                    marg_42 = parg_42,
-                    marg_43 = parg_43,
-                    marg_44 = parg_44,
-                    marg_45 = parg_45,
-                    marg_46 = parg_46,
-                    marg_47 = parg_47,
-                    marg_48 = parg_48,
-                    marg_49 = parg_49,
-                    marg_50 = parg_50
-                };
-
-                TestOutputs.Capture(new Assignments { Model = model, Params = paramsModel });
             }
-        }
-
-        public class Assignments
-        {
-            public Model Model;
-            public Model Params;
         }
         public class Model : IArgumentModel
         {
@@ -503,7 +393,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
                 $"var expectedAssignment = new Model\n{{\n{assignExpectedOptionValues},\n{assignExpectedArgValues}\n}};");
             _output.WriteLine("Verify(new Given<App>\n{");
             _output.WriteLine(
-                $"WhenArgs = \"Do \" +\n\"{modelOptionsDo} \" +\n\"{paramOptionsDo} \" +\n\"{argsDo} \" +\n\"{argsDo} \",");
+                $"When = {{Args = \"Do \" +\n\"{modelOptionsDo} \" +\n\"{paramOptionsDo} \" +\n\"{argsDo} \" +\n\"{argsDo} \"}},");
             _output.WriteLine("Then = {Outputs = {new Assignments {Model = expectedAssignment, Params = expectedAssignment}}}");
             _output.WriteLine("});");
         }

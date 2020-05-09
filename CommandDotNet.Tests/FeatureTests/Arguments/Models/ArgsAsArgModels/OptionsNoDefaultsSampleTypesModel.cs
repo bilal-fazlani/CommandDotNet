@@ -10,7 +10,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments.Models.ArgsAsArgModels
         public bool BoolArg { get; set; }
 
         [Option]
-        public string StringArg { get; set; }
+        public string? StringArg { get; set; }
 
         [Option]
         public int StructArg { get; set; }
@@ -22,18 +22,18 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments.Models.ArgsAsArgModels
         public DayOfWeek EnumArg { get; set; }
 
         [Option]
-        public Uri ObjectArg { get; set; }
+        public Uri? ObjectArg { get; set; }
 
         [Option]
-        public List<string> StringListArg { get; set; }
+        public List<string>? StringListArg { get; set; }
 
         [Option]
-        public List<int> StructListArg { get; set; }
+        public List<int>? StructListArg { get; set; }
 
         [Option]
-        public List<DayOfWeek> EnumListArg { get; set; }
+        public List<DayOfWeek>? EnumListArg { get; set; }
 
         [Option]
-        public List<Uri> ObjectListArg { get; set; }
+        public List<Uri>? ObjectListArg { get; set; }
     }
 }

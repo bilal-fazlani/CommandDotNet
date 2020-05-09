@@ -23,7 +23,7 @@ namespace CommandDotNet.ClassModeling.Definitions
 
         public object DefaultValue => _parameterInfo.DefaultValue;
 
-        public IArgument Argument { get; set; }
+        public IArgument? Argument { get; set; }
 
         public ICustomAttributeProvider CustomAttributes => _parameterInfo;
 
@@ -33,7 +33,7 @@ namespace CommandDotNet.ClassModeling.Definitions
             ParameterInfo parameterInfo,
             CommandNodeType commandNodeType,
             AppConfig appConfig,
-            object[] parameterValues)
+            object?[] parameterValues)
         {
             if (parameterValues == null)
             {

@@ -12,12 +12,16 @@ namespace CommandDotNet
     /// </summary>
     public interface IServices
     {
-        void Add<T>(T value);
+        void Add<T>(T value) where T : class;
         void Add(Type type, object value);
-        void AddOrUpdate<T>(T value);
+        void AddOrUpdate<T>(T value) where T : class;
         void AddOrUpdate(Type type, object value);
-        T Get<T>();
-        object Get(Type type);
+        T GetOrAdd<T>(Func<T> factory) where T : class;
+        object GetOrAdd(Type type, Func<object> factory);
+        T? GetOrDefault<T>() where T : class;
+        object? GetOrDefault(Type type);
+        T GetOrThrow<T>() where T : class;
+        object GetOrThrow(Type type);
         ICollection<KeyValuePair<Type, object>> GetAll();
     }
 }

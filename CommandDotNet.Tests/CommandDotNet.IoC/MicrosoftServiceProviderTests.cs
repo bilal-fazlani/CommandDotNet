@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using CommandDotNet.Execution;
 using CommandDotNet.IoC.MicrosoftDependencyInjection;
 using CommandDotNet.TestTools;
 using FluentAssertions;
@@ -12,11 +10,9 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
 {
     public class MicrosoftServiceProviderTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public MicrosoftServiceProviderTests(ITestOutputHelper testOutputHelper)
+        public MicrosoftServiceProviderTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
 
         [Fact]
@@ -24,19 +20,31 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
         {
             var serviceProvider = ConfigureMicrosoftServiceProvider();
 
-            new AppRunner<App>()
+            new AppRunner<IoCApp>()
                 .UseMicrosoftDependencyInjection(serviceProvider)
-                .RunInMem("Do", _testOutputHelper);
+                .RunInMem("Do");
         }
 
         [Fact]
         public void CanSpecifyScope()
         {
             var serviceProvider = ConfigureMicrosoftServiceProvider();
+            ISomeIoCService svcBeforeRun;
+            using (var scope = serviceProvider.CreateScope())
+            {
+                svcBeforeRun = serviceProvider.GetRequiredService<ISomeIoCService>();
+            }
 
-            new AppRunner<App>()
+            var result = new AppRunner<IoCApp>()
                 .UseMicrosoftDependencyInjection(serviceProvider, runInScope: ctx => serviceProvider.CreateScope())
-                .RunInMem("Do", _testOutputHelper);
+                .RunInMem("Do");
+
+            var app = result.CommandContext.GetCommandInvocationInfo<IoCApp>().Instance;
+
+            app!.FromCtor.Should().BeSameAs(app.FromInterceptor);
+
+            // TODO: why is this the same instance?
+            //app.FromCtor.Should().NotBeSameAs(svcBeforeRun);
         }
 
         [Fact]
@@ -45,59 +53,22 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
             var serviceProvider = ConfigureMicrosoftServiceProvider(skipApp: true);
 
             Assert.Throws<InvalidOperationException>(() =>
-                new AppRunner<App>()
+                new AppRunner<IoCApp>()
                     .UseMicrosoftDependencyInjection(serviceProvider)
-                    .RunInMem("Do", _testOutputHelper)
-            ).Message.Should().StartWith("No service for type 'CommandDotNet.Tests.CommandDotNet.IoC.MicrosoftServiceProviderTests+App'");
+                    .RunInMem("Do")
+            ).Message.Should().StartWith("No service for type 'CommandDotNet.Tests.CommandDotNet.IoC.IoCApp'");
         }
 
         private static IServiceProvider ConfigureMicrosoftServiceProvider(bool skipApp = false)
         {
-            IServiceCollection serviceCollection = new ServiceCollection();
+            var serviceCollection = new ServiceCollection();
             if (!skipApp)
             {
-                serviceCollection.AddScoped<App>();
+                serviceCollection.AddScoped<IoCApp>();
             }
-            serviceCollection.AddScoped<ISomeService, SomeService>();
+            serviceCollection.AddScoped<ISomeIoCService, SomeIoCService>();
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
             return serviceProvider;
         }
-
-        class App
-        {
-            private readonly ISomeService _someService;
-            private TestOutputs TestOutputs { get; set; }
-
-            public App(ISomeService someService)
-            {
-                _someService = someService;
-            }
-
-            public Task<int> Intercept(CommandContext context, ExecutionDelegate next)
-            {
-                TestOutputs.Capture(new Services
-                {
-                    FromCtor = _someService,
-                    FromInterceptor = (ISomeService)context.AppConfig.DependencyResolver.Resolve(typeof(ISomeService))
-                });
-                return next(context);
-            }
-
-            public void Do()
-            {
-                if(_someService == null)
-                    throw new Exception("SomeService was not injected");
-            }
-
-            public class Services
-            {
-                public ISomeService FromCtor { get; set; }
-                public ISomeService FromInterceptor { get; set; }
-            }
-        }
-
-        public interface ISomeService { }
-
-        public class SomeService : ISomeService { }
     }
 }

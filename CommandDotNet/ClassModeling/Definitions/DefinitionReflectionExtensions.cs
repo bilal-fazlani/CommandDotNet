@@ -29,16 +29,12 @@ namespace CommandDotNet.ClassModeling.Definitions
             // If developer defined the mode with an attribute, use that,
             // otherwise use the defined ArgumentMode
 
-            switch (argumentMode)
+            return argumentMode switch
             {
-                case ArgumentMode.Operand:
-                    return attributeProvider.HasAttribute<OptionAttribute>();
-                case ArgumentMode.Option:
-                    return !attributeProvider.HasAttribute<OperandAttribute>()
-                           && !attributeProvider.HasAttribute<ArgumentAttribute>();
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(argumentMode), argumentMode, null);
-            }
+                ArgumentMode.Operand => attributeProvider.HasAttribute<OptionAttribute>(),
+                ArgumentMode.Option => !attributeProvider.HasAttribute<OperandAttribute>(),
+                _ => throw new ArgumentOutOfRangeException(nameof(argumentMode), argumentMode, null)
+            };
         }
     }
 }

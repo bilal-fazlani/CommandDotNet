@@ -10,13 +10,12 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
 {
     public class ParseDirective_Password_Tests : IDisposable
     {
-        private readonly ITestOutputHelper _output;
         private readonly TempFiles _tempFiles;
 
         public ParseDirective_Password_Tests(ITestOutputHelper output)
         {
-            _output = output;
-            _tempFiles = new TempFiles(_output.AsLogger());
+            Ambient.Output = output;
+            _tempFiles = new TempFiles(output.WriteLine);
         }
 
         public void Dispose()
@@ -29,13 +28,12 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
         {
             new AppRunner<App>()
                 .UseParseDirective()
-                .VerifyScenario(_output,
-                    new Scenario
+                .Verify(new Scenario
+                {
+                    When = {Args = "[parse:t] Secure -u me -p super-secret"},
+                    Then =
                     {
-                        WhenArgs = "[parse:t] Secure -u me -p super-secret",
-                        Then =
-                        {
-                            Result = @"command: Secure
+                        Output = @"command: Secure
 
 options:
 
@@ -59,9 +57,10 @@ token transformations:
   Option   : -p
   Value    : super-secret
 >>> after: expand-clubbed-flags (no changes)
->>> after: split-option-assignments (no changes)"
-                        }
-                    });
+>>> after: split-option-assignments (no changes)
+"
+                    }
+                });
         }
 
         [Fact]
@@ -71,13 +70,12 @@ token transformations:
             new AppRunner<App>()
                 .UseResponseFiles()
                 .UseParseDirective()
-                .VerifyScenario(_output,
-                    new Scenario
+                .Verify(new Scenario
+                {
+                    When = {Args = $"[parse:t] Secure @{tempFile}"},
+                    Then =
                     {
-                        WhenArgs = $"[parse:t] Secure @{tempFile}",
-                        Then =
-                        {
-                            Result = $@"command: Secure
+                        Output = $@"command: Secure
 
 options:
 
@@ -105,9 +103,10 @@ token transformations:
   Option   : -p
   Value    : super-secret
 >>> after: expand-clubbed-flags (no changes)
->>> after: split-option-assignments (no changes)"
-                        }
-                    });
+>>> after: split-option-assignments (no changes)
+"
+                    }
+                });
         }
 
         [Fact]
@@ -116,14 +115,16 @@ token transformations:
             new AppRunner<App>()
                 .UsePrompting()
                 .UseParseDirective()
-                .VerifyScenario(_output,
-                    new Scenario
+                .Verify(new Scenario
+                {
+                    When =
                     {
-                        Given = { OnPrompt = Respond.With("super-secret")},
-                        WhenArgs = "[parse:t] PromptSecure",
-                        Then =
-                        {
-                            Result = @"password (Text):
+                        Args = "[parse:t] PromptSecure",
+                        OnPrompt = Respond.WithText("super-secret")
+                    },
+                    Then =
+                    {
+                        Output = @"password (Text): 
 command: PromptSecure
 
 arguments:
@@ -139,9 +140,10 @@ token transformations:
   Directive: [parse:t]
   Value    : PromptSecure
 >>> after: expand-clubbed-flags (no changes)
->>> after: split-option-assignments (no changes)"
-                        }
-                    });
+>>> after: split-option-assignments (no changes)
+"
+                    }
+                });
         }
 
         [Fact]
@@ -155,13 +157,12 @@ token transformations:
             new AppRunner<App>()
                 .UseDefaultsFromAppSetting(appSettings, includeNamingConventions: true)
                 .UseParseDirective()
-                .VerifyScenario(_output,
-                    new Scenario
+                .Verify(new Scenario
+                {
+                    When = {Args = "[parse:t] Secure -u me"},
+                    Then =
                     {
-                        WhenArgs = "[parse:t] Secure -u me",
-                        Then =
-                        {
-                            Result = @"command: Secure
+                        Output = @"command: Secure
 
 options:
 
@@ -183,9 +184,10 @@ token transformations:
   Option   : -u
   Value    : me
 >>> after: expand-clubbed-flags (no changes)
->>> after: split-option-assignments (no changes)"
-                        }
-                    });
+>>> after: split-option-assignments (no changes)
+"
+                    }
+                });
         }
 
 
@@ -203,7 +205,7 @@ token transformations:
         class Args : IArgumentModel
         {
             [Option(ShortName = "u", LongName = "username")]
-            public string Username { get; set; }
+            public string? Username { get; set; }
 
             [Option(ShortName = "p", LongName = "password")]
             public Password Password { get; set; } = new Password("default-secret");

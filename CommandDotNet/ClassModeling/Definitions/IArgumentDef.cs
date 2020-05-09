@@ -9,7 +9,7 @@ namespace CommandDotNet.ClassModeling.Definitions
         Type Type { get; }
         bool HasDefaultValue { get; }
         object DefaultValue { get; }
-        IArgument Argument { get; set; }
+        IArgument? Argument { get; set; }
         ValueProxy ValueProxy { get; }
     }
 }

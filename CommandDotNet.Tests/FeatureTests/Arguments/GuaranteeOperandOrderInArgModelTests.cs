@@ -1,52 +1,27 @@
 using CommandDotNet.TestTools.Scenarios;
 using Xunit;
 using Xunit.Abstractions;
+using static System.Environment;
 
 namespace CommandDotNet.Tests.FeatureTests.Arguments
 {
     public class GuaranteeOperandOrderInArgModelTests
     {
-        private static readonly AppSettings OperandModeWithOutGuarantee = TestAppSettings.BasicHelp.Clone(a => a.DefaultArgumentMode = ArgumentMode.Operand);
-        private static readonly AppSettings OptionModeWithOutGuarantee = TestAppSettings.BasicHelp.Clone(a => a.DefaultArgumentMode = ArgumentMode.Option);
-        private static readonly AppSettings OperandModeWithGuarantee = OperandModeWithOutGuarantee.Clone(a => a.GuaranteeOperandOrderInArgumentModels = true);
-        private static readonly AppSettings OptionModeWithGuarantee = OptionModeWithOutGuarantee.Clone(a => a.GuaranteeOperandOrderInArgumentModels = true);
-
-        private readonly ITestOutputHelper _output;
-
+        private static readonly AppSettings OperandModeWithGuarantee = TestAppSettings.BasicHelp.Clone(a => a.DefaultArgumentMode = ArgumentMode.Operand);
+        private static readonly AppSettings OptionModeWithGuarantee = TestAppSettings.BasicHelp.Clone(a => a.DefaultArgumentMode = ArgumentMode.Option);
+        
         public GuaranteeOperandOrderInArgModelTests(ITestOutputHelper output)
         {
-            _output = output;
+            Ambient.Output = output;
         }
-
-        [Fact]
-        public void GivenOptionMode_WithOutGuarantee_UnattributedArgModel_Should_BeOk()
-        {
-            new AppRunner<UArgModelApp>(OptionModeWithOutGuarantee)
-                .VerifyScenario(_output, new Scenario
-                {
-                    WhenArgs = "Do -h",
-                    Then = { ExitCode = 0 }
-                });
-        }
-
-        [Fact]
-        public void GivenOperandMode_WithOutGuarantee_UnattributedArgModel_Should_BeOk()
-        {
-            new AppRunner<UArgModelApp>(OperandModeWithOutGuarantee)
-                .VerifyScenario(_output, new Scenario
-                {
-                    WhenArgs = "Do -h",
-                    Then = { ExitCode = 0 }
-                });
-        }
-
+        
         [Fact]
         public void GivenOptionMode_WithGuarantee_UnattributedArgModel_Should_BeOk()
         {
             new AppRunner<UArgModelApp>(OptionModeWithGuarantee)
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do -h",
+                    When = {Args = "Do -h"},
                     Then = { ExitCode = 0 }
                 });
         }
@@ -55,15 +30,16 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         public void GivenOperandMode_WithGuarantee_UnattributedArgModel_Should_Detect_UnattributedOperand()
         {
             new AppRunner<UArgModelApp>(OperandModeWithGuarantee)
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do -h",
+                    When = {Args = "Do -h"},
                     Then =
                     {
                         ExitCode = 1,
-                        Result = "Operand property must be attributed with OperandAttribute or " +
+                        Output = "Operand property must be attributed with OperandAttribute or " +
                                  "OrderByPositionInClassAttribute to guarantee consistent order. " +
-                                 "Property: CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+UnattributedArgModel.Arg1"
+                                 "Property: CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+UnattributedArgModel.Arg1" +
+                                 $"{NewLine}"
                     }
                 });
         }
@@ -72,13 +48,13 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         public void GivenOptionMode_WithGuarantee_AttributedArgModel_Should_BeOk()
         {
             new AppRunner<AArgModelApp>(OptionModeWithGuarantee)
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do -h",
+                    When = {Args = "Do -h"},
                     Then =
                     {
                         ExitCode = 0,
-                        ResultsContainsTexts =
+                        OutputContainsTexts =
                         {
                             @"Arguments:
   Operand1",
@@ -93,13 +69,13 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         public void GivenOperandMode_WithGuarantee_AttributedArgModel_Should_ListOperandsInCorrectOrder()
         {
             new AppRunner<AArgModelApp>(OperandModeWithGuarantee)
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do -h",
+                    When = {Args = "Do -h"},
                     Then =
                     {
                         ExitCode = 0,
-                        ResultsContainsTexts =
+                        OutputContainsTexts =
                         {
                             @"Arguments:
   Arg1
@@ -113,15 +89,16 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         public void GivenOperandMode_WithGuarantee_AttributedNestedModel_With_AttributedArgModel_Should_BeOk()
         {
             new AppRunner<ANestedModelAArgModelApp>(OperandModeWithGuarantee)
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do -h",
+                    When = {Args = "Do -h"},
                     Then =
                     {
                         ExitCode = 0,
-                        ResultsContainsTexts =
+                        OutputContainsTexts =
                         {
                             @"Arguments:
+  OperandDefinedFirstReflectedLast
   Arg1
   Operand1
   Arg2
@@ -135,15 +112,16 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         public void GivenOperandMode_WithGuarantee_UnattributedNestedModel_With_UnattributedArgModel_Should_Detect_UnattributedOperand()
         {
             new AppRunner<UNestedModelUArgModelApp>(OperandModeWithGuarantee)
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do -h",
+                    When = {Args = "Do -h"},
                     Then =
                     {
                         ExitCode = 1,
-                        Result = "Operand property must be attributed with OperandAttribute or " +
+                        Output = "Operand property must be attributed with OperandAttribute or " +
                                  "OrderByPositionInClassAttribute to guarantee consistent order. " +
-                                 "Property: CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+UnattributedArgModel.Arg1"
+                                 "Property: CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+UnattributedArgModel.Arg1" +
+                                 $"{NewLine}"
                     }
                 });
         }
@@ -152,16 +130,17 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         public void GivenOperandMode_WithGuarantee_UnattributedNestedModel_With_AttributedArgModel_Should_Detect_UnattributedArgModel()
         {
             new AppRunner<UNestedModelAArgModelApp>(OperandModeWithGuarantee)
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do -h",
+                    When = {Args = "Do -h"},
                     Then =
                     {
                         ExitCode = 1,
-                        Result = "Operand property must be attributed with OperandAttribute or " +
+                        Output = "Operand property must be attributed with OperandAttribute or " +
                                  "OrderByPositionInClassAttribute to guarantee consistent order. " +
                                  @"Properties:
-  CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+UnattributedNestedModelAttributedArgModel.Model"
+  CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+UnattributedNestedModelAttributedArgModel.Model" +
+                                 $"{NewLine}"
                     }
                 });
         }
@@ -170,15 +149,16 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         public void GivenOperandMode_WithGuarantee_AttributedNestedModel_With_UnattributedArgModel_Should_Detect_UnattributedOperand()
         {
             new AppRunner<ANestedModelUArgModelApp>(OperandModeWithGuarantee)
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do -h",
+                    When = {Args = "Do -h"},
                     Then =
                     {
                         ExitCode = 1,
-                        Result = "Operand property must be attributed with OperandAttribute or " +
+                        Output = "Operand property must be attributed with OperandAttribute or " +
                                  "OrderByPositionInClassAttribute to guarantee consistent order. " +
-                                 "Property: CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+UnattributedArgModel.Arg1"
+                                 "Property: CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+UnattributedArgModel.Arg1" +
+                                 $"{NewLine}"
                     }
                 });
         }
@@ -187,17 +167,18 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         public void GivenOperandMode_WithGuarantee_DeepNestedUnattributedArgModel_Should_Detect_All_UnattributedArgModels()
         {
             new AppRunner<DeepNestedUArgModelsApp>(OperandModeWithGuarantee)
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "Do -h",
+                    When = {Args = "Do -h"},
                     Then =
                     {
                         ExitCode = 1,
-                        Result = "Operand property must be attributed with OperandAttribute or " +
+                        Output = "Operand property must be attributed with OperandAttribute or " +
                                  "OrderByPositionInClassAttribute to guarantee consistent order. " +
                                  @"Properties:
   CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+UnattributedNestedModelAttributedArgModel.Model
-  CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+DeepNestedUnattributedArgModels.Model"
+  CommandDotNet.Tests.FeatureTests.Arguments.GuaranteeOperandOrderInArgModelTests+DeepNestedUnattributedArgModels.Model" +
+                                 $"{NewLine}"
                     }
                 });
         }
@@ -220,56 +201,59 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         // Invalid
         public class UnattributedArgModel : IArgumentModel
         {
-            public string Arg1 { get; set; }
+            public string Arg1 { get; set; } = null!;
         }
 
         // Valid & can verify order
         public class AttributedArgModel : IArgumentModel
         {
             [OrderByPositionInClass]
-            public string Arg1 { get; set; }
+            public string Arg1 { get; set; } = null!;
 
             [Operand]
-            public string Operand1 { get; set; }
+            public string Operand1 { get; set; } = null!;
         }
 
         // Invalid
         public class DeepNestedUnattributedArgModels : IArgumentModel
         {
             // operand must be attributed so we can get parent arg model alerts
-            public UnattributedNestedModelAttributedArgModel Model { get; set; }
+            public UnattributedNestedModelAttributedArgModel Model { get; set; } = null!;
         }
 
         // Invalid
         public class UnattributedNestedModelUnattributedArgModel : IArgumentModel
         {
-            public UnattributedArgModel Model { get; set; }
+            public UnattributedArgModel Model { get; set; } = null!;
         }
 
         // Invalid
         public class UnattributedNestedModelAttributedArgModel : IArgumentModel
         {
-            public AttributedArgModel Model { get; set; }
+            public AttributedArgModel Model { get; set; } = null!;
         }
 
         // Invalid
         public class AttributedNestedModelUnattributedArgModel : IArgumentModel
         {
             [OrderByPositionInClass]
-            public UnattributedArgModel Model { get; set; }
+            public UnattributedArgModel Model { get; set; } = null!;
         }
 
         // Valid & can verify order
         public class AttributedNestedModelAttributedArgModel : IArgumentModel
         {
             [OrderByPositionInClass]
-            public AttributedArgModel Model { get; set; }
+            public AttributedArgModel Model { get; set; } = null!;
 
             [OrderByPositionInClass]
-            public string Arg2 { get; set; }
+            public string Arg2 { get; set; } = null!;
 
             [Operand]
-            public string Operand2 { get; set; }
+            public string Operand2 { get; set; } = null!;
+
+            // mimic operand defined first but returned last when reflected
+            [Operand(1)] public string OperandDefinedFirstReflectedLast { get; set; } = null!;
         }
     }
 }

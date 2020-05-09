@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using CommandDotNet.Execution;
-using CommandDotNet.IoC.SimpleInjector;
+﻿using CommandDotNet.IoC.SimpleInjector;
 using CommandDotNet.TestTools;
 using FluentAssertions;
 using SimpleInjector;
@@ -13,23 +10,21 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
 {
     public class SimpleInjectorTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public SimpleInjectorTests(ITestOutputHelper testOutputHelper)
+        public SimpleInjectorTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
         
         [Fact]
         public void ShouldWork()
         {
             var container = new Container();
-            container.Register<App>();
-            container.Register<ISomeService, SomeService>();
+            container.Register<IoCApp>();
+            container.Register<ISomeIoCService, SomeIoCService>();
 
-            new AppRunner<App>()
+            new AppRunner<IoCApp>()
                 .UseSimpleInjector(container)
-                .RunInMem("Do", _testOutputHelper);
+                .RunInMem("Do");
         }
 
         [Fact]
@@ -37,74 +32,37 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
         {
             var container = new Container();
             container.Options.DefaultScopedLifestyle = new AsyncScopedLifestyle();
-            container.Register<App>(Lifestyle.Scoped);
-            container.Register<ISomeService, SomeService>(Lifestyle.Scoped);
+            container.Register<IoCApp>(Lifestyle.Scoped);
+            container.Register<ISomeIoCService, SomeIoCService>(Lifestyle.Scoped);
 
-            ISomeService svcBeforeRun;
+            ISomeIoCService svcBeforeRun;
             using (var scope = AsyncScopedLifestyle.BeginScope(container))
             {
-                svcBeforeRun = container.GetInstance<ISomeService>();
+                svcBeforeRun = container.GetInstance<ISomeIoCService>();
             }
 
-            var testOutputs = new AppRunner<App>()
+            var result = new AppRunner<IoCApp>()
+                .TrackingInvocations()
                 .UseSimpleInjector(container, runInScope: ctx => AsyncScopedLifestyle.BeginScope(container))
-                .RunInMem("Do", _testOutputHelper)
-                .TestOutputs;
+                .RunInMem("Do");
 
-            var services = testOutputs.Get<App.Services>();
+            var app = result.CommandContext.GetCommandInvocationInfo<IoCApp>().Instance;
 
-            services.FromCtor.Should().BeSameAs(services.FromInterceptor);
-            services.FromCtor.Should().NotBeSameAs(svcBeforeRun);
+            app!.FromCtor.Should().BeSameAs(app.FromInterceptor);
+            app.FromCtor.Should().NotBeSameAs(svcBeforeRun);
         }
 
         [Fact]
         public void WhenUnregisteredType_ShouldThrowException()
         {
             var container = new Container();
-            // SimpleInjector will implicit register App if ISomeService is registered
+            // SimpleInjector will implicit register App if ISomeIoCService is registered
 
             Assert.Throws<ActivationException>(() =>
-                new AppRunner<App>()
+                new AppRunner<IoCApp>()
                     .UseSimpleInjector(container)
-                    .RunInMem("Do", _testOutputHelper)
-            ).Message.Should().StartWith("No registration for type SimpleInjectorTests.App could be found and an implicit registration could not be made.");
+                    .RunInMem("Do")
+            ).Message.Should().StartWith("No registration for type IoCApp could be found and an implicit registration could not be made.");
         }
-
-        class App
-        {
-            private readonly ISomeService _someService;
-            private TestOutputs TestOutputs { get; set; }
-
-            public App(ISomeService someService)
-            {
-                _someService = someService;
-            }
-
-            public Task<int> Intercept(CommandContext context, ExecutionDelegate next)
-            {
-                TestOutputs.Capture(new Services
-                {
-                    FromCtor = _someService,
-                    FromInterceptor = (ISomeService)context.AppConfig.DependencyResolver.Resolve(typeof(ISomeService))
-                });
-                return next(context);
-            }
-
-            public void Do()
-            {
-                if(_someService == null)
-                    throw new Exception("SomeService was not injected");
-            }
-
-            public class Services
-            {
-                public ISomeService FromCtor { get; set; }
-                public ISomeService FromInterceptor { get; set; }
-            }
-        }
-
-        public interface ISomeService { }
-
-        public class SomeService : ISomeService { }
     }
 }

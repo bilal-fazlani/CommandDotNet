@@ -18,10 +18,10 @@ namespace CommandDotNet.IoC.MicrosoftDependencyInjection
             return _serviceProvider.GetRequiredService(type);
         }
 
-        public bool TryResolve(Type type, out object item)
+        public bool TryResolve(Type type, out object? item)
         {
             item = _serviceProvider.GetService(type);
-            return item != null;
+            return item is { };
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -25,7 +26,7 @@ namespace CommandDotNet.Extensions
                    ?? type;
         }
 
-        internal static Type GetListUnderlyingType(this Type type)
+        internal static Type? GetListUnderlyingType(this Type type)
         {
             return type.IsArray
                 ? type.GetElementType()
@@ -61,11 +62,12 @@ namespace CommandDotNet.Extensions
             return Equals(defaultValue, type.GetDefaultValue());
         }
 
+        [return: MaybeNull]
         private static T GetDefaultValue<T>()
         {
-            return default;
+            return Box<T>.CreateDefault().Value;
         }
-        
+
         internal static bool IsCompilerGenerated(this Type t) {
             if (t == null)
                 return false;
@@ -84,7 +86,7 @@ namespace CommandDotNet.Extensions
         internal static IEnumerable<PropertyInfo> GetDeclaredProperties(this Type type)
         {
             return type
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(x => !x.PropertyType.IsCompilerGenerated());
         }
 

@@ -2,7 +2,7 @@
 
 Token transformations are a way to tranform input arguments before they are mapped to commands.
 
-This feature is used internally to expand clubbed options and support [Response Files](../Middleware/response-files.md).
+This feature is used internally to expand clubbed options and support [Response Files](../ArgumentValues/response-files.md).
 
 See these implementations as examples:
 
@@ -23,7 +23,7 @@ appRunner.Configure(c => c.UseTokenTransformation(
     transformation: MyFunc));
 ```
 
-* __name__ is used for logging and the [Parse Directive](../../../directives)
+* __name__ is used for logging and the [Parse Directive](directives.md)
 * __order__ is the order the transformation should run in relation to other transformations.
 
 ## Tokens
@@ -48,7 +48,7 @@ OptionTokenType contains
 
 TokenCollections are an immutable collection of tokens with some convenience members to simplify transformations.
 
-* __Directives__: The tokens interpreted as [directives](../Extras/directives.md). This will always be empty when `AppSettings.DisableDirectives = false`.
+* __Directives__: The tokens interpreted as [directives](directives.md). This will always be empty when `AppSettings.DisableDirectives = false`.
 * __Arguments__: All arguments after the last directive and before the argument separator `--`
 * __Separated__: All arguments included after the argument separator  `--`. If there are multiple separators, the remaining separators will be tokens in this collection.
 

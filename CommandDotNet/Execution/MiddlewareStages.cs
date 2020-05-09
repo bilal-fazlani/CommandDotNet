@@ -37,7 +37,8 @@ namespace CommandDotNet.Execution
         /// <br/>Guarantees:<br/>
         /// - <see cref="CommandContext.ParseResult"/> is populated<br/>
         /// - <see cref="ParseResult.TargetCommand"/> is set to the target command<br/>
-        /// - <see cref="IArgument.RawValues"/> contains the collection of values assigned to arguments<br/>
+        /// - <see cref="IArgument.InputValues"/> contains the collection of values assigned to arguments<br/>
+        /// - <see cref="IArgument.Default"/> contains the default value assigned to arguments<br/>
         /// - <see cref="InvocationStep.Invocation"/> and <see cref="InvocationStep.Command"/> are set for the target command and its ancestral interceptor commands<br/>
         /// not set yet (see <see cref="BindValues"/>):<br/>
         /// - <see cref="InvocationStep.Instance"/><br/>

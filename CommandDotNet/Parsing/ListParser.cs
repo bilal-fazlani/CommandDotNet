@@ -19,7 +19,7 @@ namespace CommandDotNet.Parsing
             _argumentTypeDescriptor = argumentTypeDescriptor;
         }
 
-        public object Parse(IArgument argument, IEnumerable<string> values)
+        public object? Parse(IArgument argument, IEnumerable<string> values)
         {
             // TODO: when _type & values is IEnumerable but not ICollection
             //       DO NOT enumerate values here as it could be a stream.

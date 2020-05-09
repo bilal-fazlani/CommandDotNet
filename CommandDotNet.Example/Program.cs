@@ -1,29 +1,31 @@
 ﻿using System.Collections.Specialized;
-using System.Linq;
-using CommandDotNet.Directives;
+using CommandDotNet.Diagnostics;
 using CommandDotNet.FluentValidation;
 using CommandDotNet.NameCasing;
-using CommandDotNet.NewerReleasesAlerts;
 
 namespace CommandDotNet.Example
 {
-    class Program
+    public class Program
     {
         static int Main(string[] args)
         {
             Debugger.AttachIfDebugDirective(args);
 
-            var appSettings = new NameValueCollection{{ "notify.--retry-count", "2"}};
+            var appSettings = new NameValueCollection {{"notify.--retry-count", "2"}};
 
+            return GetAppRunner(appSettings).Run(args);
+        }
+
+        public static AppRunner GetAppRunner(NameValueCollection? appSettings = null)
+        {
+            appSettings ??= new NameValueCollection();
             return new AppRunner<Examples>()
                 .UseDefaultMiddleware()
                 .UseLog2ConsoleDirective()
                 .UseNameCasing(Case.KebabCase)
                 .UseFluentValidation()
-                .UseDefaultsFromAppSetting(appSettings, includeNamingConventions: true)
-                .UseNewerReleaseAlertOnGitHub("bilal-fazlani", "commanddotnet", 
-                    skipCommand: command => command.GetParentCommands(true).Any(c => c.Name == "pipes"))
-                .Run(args);
+                .UseInteractiveMode("Example")
+                .UseDefaultsFromAppSetting(appSettings, includeNamingConventions: true);
         }
     }
 }

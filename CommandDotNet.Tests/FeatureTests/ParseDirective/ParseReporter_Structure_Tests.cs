@@ -7,11 +7,9 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
 {
     public class ParseReporter_Structure_Tests 
     {
-        private readonly ITestOutputHelper _output;
-
         public ParseReporter_Structure_Tests(ITestOutputHelper output)
         {
-            _output = output;
+            Ambient.Output = output;
         }
 
         [Fact]
@@ -19,12 +17,12 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
         {
             new AppRunner<App>()
                 .UseParseDirective()
-                .VerifyScenario(_output, new Scenario
+                .Verify(new Scenario
                 {
-                    WhenArgs = "[parse] Do",
+                    When = {Args = "[parse] Do"},
                     Then =
                     {
-                        Result = @"command: Do
+                        Output = @"command: Do
 
 arguments:
 
@@ -45,7 +43,10 @@ options:
     inputs:
     default:
 
-Use [parse:t] to include token transformations."
+Parse usage: [parse:t:raw] to include token transformations.
+ 't' to include token transformations.
+ 'raw' to include command line as passed to this process.
+"
                     }
                 });
         }

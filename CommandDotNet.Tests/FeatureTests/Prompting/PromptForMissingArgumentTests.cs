@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CommandDotNet.TestTools;
+using CommandDotNet.Tests.Utils;
 using CommandDotNet.TestTools.Prompts;
 using CommandDotNet.TestTools.Scenarios;
 using Xunit;
@@ -11,11 +11,9 @@ namespace CommandDotNet.Tests.FeatureTests.Prompting
 {
     public class PromptForMissingArgumentTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public PromptForMissingArgumentTests(ITestOutputHelper testOutputHelper)
+        public PromptForMissingArgumentTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
 
         [Fact]
@@ -23,18 +21,17 @@ namespace CommandDotNet.Tests.FeatureTests.Prompting
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.FailOnPrompt },
-                    WhenArgs = $"{nameof(App.Do)} something --opt1 simple",
+                    When =
+                    {
+                        Args = $"{nameof(App.Do)} something --opt1 simple",
+                        OnPrompt = Respond.FailOnPrompt()
+                    },
                     Then =
                     {
-                        Outputs = {new App.DoResult
-                        {
-                            Arg1 = "something",
-                            Opt1 = "simple"
-                        }},
-                        Result = ""
+                        AssertContext = ctx => ctx.ParamValuesShouldBe("simple", "something"),
+                        Output = ""
                     }
                 });
         }
@@ -44,18 +41,18 @@ namespace CommandDotNet.Tests.FeatureTests.Prompting
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.With("simple", prompt => prompt.StartsWith("opt1")) },
-                    WhenArgs = $"{nameof(App.Do)} something",
+                    When =
+                    {
+                        Args = $"{nameof(App.Do)} something",
+                        OnPrompt = Respond.WithText("simple", prompt => prompt.StartsWith("opt1"))
+                    },
                     Then =
                     {
-                        Outputs = {new App.DoResult
-                        {
-                            Arg1 = "something",
-                            Opt1 = "simple"
-                        }},
-                        Result = "opt1 (Text): simple"
+                        AssertContext = ctx => ctx.ParamValuesShouldBe("simple", "something"),
+                        Output = @"opt1 (Text): simple
+"
                     }
                 });
         }
@@ -65,18 +62,18 @@ namespace CommandDotNet.Tests.FeatureTests.Prompting
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.With("something", prompt => prompt.StartsWith("arg1")) },
-                    WhenArgs = $"{nameof(App.Do)} --opt1 simple",
+                    When =
+                    {
+                        Args = $"{nameof(App.Do)} --opt1 simple",
+                        OnPrompt = Respond.WithText("something", prompt => prompt.StartsWith("arg1"))
+                    },
                     Then =
                     {
-                        Outputs = {new App.DoResult
-                        {
-                            Arg1 = "something",
-                            Opt1 = "simple"
-                        }},
-                        Result = "arg1 (Text): something"
+                        AssertContext = ctx => ctx.ParamValuesShouldBe("simple", "something"),
+                        Output = @"arg1 (Text): something
+"
                     }
                 });
         }
@@ -86,28 +83,22 @@ namespace CommandDotNet.Tests.FeatureTests.Prompting
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given =
+                    When =
                     {
+                        Args = $"{nameof(App.Do)}",
                         OnPrompt = Respond.With(
-                            new Answer("something", prompt => prompt.StartsWith("arg1")),
-                            new Answer("simple", prompt => prompt.StartsWith("opt1"))
+                            new TextAnswer("something", prompt => prompt.StartsWith("arg1")),
+                            new TextAnswer("simple", prompt => prompt.StartsWith("opt1"))
                         )
                     },
-                    WhenArgs = $"{nameof(App.Do)}",
                     Then =
                     {
-                        Outputs =
-                        {
-                            new App.DoResult
-                            {
-                                Arg1 = "something",
-                                Opt1 = "simple"
-                            }
-                        },
-                        Result = @"arg1 (Text): something
-opt1 (Text): simple"
+                        AssertContext = ctx => ctx.ParamValuesShouldBe("simple", "something"),
+                        Output = @"arg1 (Text): something
+opt1 (Text): simple
+"
                     }
                 });
         }
@@ -117,14 +108,17 @@ opt1 (Text): simple"
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.With("yes")},
-                    WhenArgs = $"{nameof(App.DoList)} something simple",
+                    When =
+                    {
+                        Args = $"{nameof(App.DoList)} something simple",
+                        OnPrompt = Respond.WithText("yes")
+                    },
                     Then =
                     {
-                        Outputs = {new List<string>{"something", "simple"}},
-                        Result = ""
+                        AssertContext = ctx => ctx.ParamValuesShouldBe(new List<string>{"something", "simple"}),
+                        Output = ""
                     }
                 });
         }
@@ -134,16 +128,21 @@ opt1 (Text): simple"
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.WithList(new []{"something", "simple"}) },
-                    WhenArgs = $"{nameof(App.DoList)}",
+                    When =
+                    {
+                        Args = $"{nameof(App.DoList)}",
+                        OnPrompt = Respond.WithList(new []{"something", "simple"})
+                    },
                     Then =
                     {
-                        Outputs = {new List<string>{"something", "simple"}},
-                        Result = @"args (Text) [<enter> once to begin new value. <enter> twice to finish]:
+                        AssertContext = ctx => ctx.ParamValuesShouldBe(new List<string>{"something", "simple"}),
+                        Output = @"args (Text) [<enter> once to begin new value. <enter> twice to finish]: 
 something
-simple"
+simple
+
+"
                     }
                 });
         }
@@ -153,13 +152,17 @@ simple"
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.WithList(new[] { "something", "simple", "'or not'", "\"so simple\"" }) },
-                    WhenArgs = $"{nameof(App.DoList)}",
+                    When =
+                    {
+                        Args = $"{nameof(App.DoList)}",
+                        OnPrompt = Respond.WithList(new[] { "something", "simple", "'or not'", "\"so simple\"" })
+                    },
                     Then =
                     {
-                        Outputs = {new List<string>{"something", "simple", "'or not'", "\"so simple\""}}
+                        AssertContext = ctx => ctx.ParamValuesShouldBe(
+                            new List<string>{"something", "simple", "'or not'", "\"so simple\""}),
                     }
                 });
         }
@@ -169,13 +172,16 @@ simple"
         {
             new AppRunner<HierApp>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = {OnPrompt = Respond.With("1", prompt => prompt.StartsWith("intercept1"))},
-                    WhenArgs = $"{nameof(HierApp.Do)} --inherited1 2",
+                    When =
+                    {
+                        Args = $"{nameof(HierApp.Do)} --inherited1 2",
+                        OnPrompt = Respond.WithText("1", prompt => prompt.StartsWith("intercept1"))
+                    },
                     Then =
                     {
-                        Outputs = {new HierApp.InterceptResult {Intercept1 = 1, Inherited1 = 2}}
+                        AssertContext = ctx => ctx.ParamValuesShouldBe<HierApp>(1, 2)
                     }
                 });
         }
@@ -185,13 +191,16 @@ simple"
         {
             new AppRunner<HierApp>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.With("2", prompt => prompt.StartsWith("inherited1")) },
-                    WhenArgs = $" --intercept1 1 {nameof(HierApp.Do)}",
+                    When =
+                    {
+                        Args = $" --intercept1 1 {nameof(HierApp.Do)}",
+                        OnPrompt = Respond.WithText("2", prompt => prompt.StartsWith("inherited1"))
+                    },
                     Then =
                     {
-                        Outputs = {new HierApp.InterceptResult {Intercept1 = 1, Inherited1 = 2}}
+                        AssertContext = ctx => ctx.ParamValuesShouldBe<HierApp>(1, 2)
                     }
                 });
         }
@@ -201,17 +210,21 @@ simple"
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.With(
-                        new Answer("lala", prompt => prompt.StartsWith("user")), 
-                        new Answer("fishies", prompt => prompt.StartsWith("password")))},
-                    WhenArgs = $"{nameof(App.Secure)}",
+                    When =
+                    {
+                        Args = $"{nameof(App.Secure)}",
+                        OnPrompt = Respond.With(
+                            new TextAnswer("lala", prompt => prompt.StartsWith("user")),
+                            new TextAnswer("fishies", prompt => prompt.StartsWith("password")))
+                    },
                     Then =
                     {
-                        Outputs = { new App.SecureResult{User = "lala", Password = new Password("fishies")}},
-                        Result = @"user (Text): lala
-password (Text): "
+                        AssertContext = ctx => ctx.ParamValuesShouldBe("lala", new Password("fishies")),
+                        Output = @"user (Text): lala
+password (Text): 
+"
                     }
                 });
         }
@@ -219,19 +232,25 @@ password (Text): "
         [Fact]
         public void WhenPasswordMissing_BackspaceDoesNotRemovePromptText()
         {
+            // \b is Console for Backspace
+
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.With(
-                        new Answer("lala", prompt => prompt.StartsWith("user")), 
-                        new Answer("fishies\b\b\b\b\b\b\bnew", prompt => prompt.StartsWith("password")))},
-                    WhenArgs = $"{nameof(App.Secure)}",
+                    When =
+                    {
+                        Args = $"{nameof(App.Secure)}",
+                        OnPrompt = Respond.With(
+                            new TextAnswer("lala", prompt => prompt.StartsWith("user")),
+                            new TextAnswer("fishies\b\b\b\b\b\b\bnew", prompt => prompt.StartsWith("password")))
+                    },
                     Then =
                     {
-                        Outputs = { new App.SecureResult{User = "lala", Password = new Password("new")}},
-                        Result = @"user (Text): lala
-password (Text): "
+                        AssertContext = ctx => ctx.ParamValuesShouldBe("lala", new Password("new")),
+                        Output = @"user (Text): lala
+password (Text): 
+"
                     }
                 });
         }
@@ -241,11 +260,14 @@ password (Text): "
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.FailOnPrompt },
-                    WhenArgs = $"{nameof(App.Flags)}",
-                    Then = { Result = ""}
+                    When =
+                    {
+                        Args = $"{nameof(App.Flags)}",
+                        OnPrompt = Respond.FailOnPrompt()
+                    },
+                    Then = { Output = ""}
                 });
         }
 
@@ -253,16 +275,19 @@ password (Text): "
         public void WhenExplicitBoolOptionMissing_Prompts()
         {
 
-            new AppRunner<App>(new AppSettings { BooleanMode = BooleanMode.Explicit })
+            new AppRunner<App>(new AppSettings {BooleanMode = BooleanMode.Explicit})
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.With(
-                        new Answer("true", prompt => prompt.StartsWith("a ")),
-                        new Answer("false", prompt => prompt.StartsWith("b "))
-                        )},
-                    WhenArgs = $"{nameof(App.Flags)}",
-                    Then = { Outputs = { (flagA: true, flagB: false) } }
+                    When =
+                    {
+                        Args = $"{nameof(App.Flags)}",
+                        OnPrompt = Respond.With(
+                            new TextAnswer("true", prompt => prompt.StartsWith("a ")),
+                            new TextAnswer("false", prompt => prompt.StartsWith("b "))
+                        )
+                    },
+                    Then = {AssertContext = ctx => ctx.ParamValuesShouldBe(true, false)}
                 });
         }
 
@@ -271,14 +296,18 @@ password (Text): "
         {
             new AppRunner<App>()
                 .UsePrompting()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.With("true", prompt => prompt.StartsWith("operand1")) },
-                    WhenArgs = $"{nameof(App.Bool)}",
+                    When =
+                    {
+                        Args = $"{nameof(App.Bool)}",
+                        OnPrompt = Respond.WithText("true", prompt => prompt.StartsWith("operand1"))
+                    },
                     Then =
                     {
-                        Outputs = { true },
-                        Result = "operand1 (Boolean): true"
+                        AssertContext = ctx => ctx.ParamValuesShouldBe(true),
+                        Output = @"operand1 (Boolean): true
+"
                     }
                 });
         }
@@ -288,15 +317,19 @@ password (Text): "
         {
             new AppRunner<App>()
                 .UsePrompting(argumentPromptTextOverride: (ctx, arg) => "lala")
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = { OnPrompt = Respond.With("fishies", reuse: true) },
-                    WhenArgs = $"{nameof(App.Do)}",
+                    When =
+                    {
+                        Args = $"{nameof(App.Do)}",
+                        OnPrompt = Respond.WithText("fishies", reuse: true)
+                    },
                     Then =
                     {
-                        Outputs = { new App.DoResult{Arg1 = "fishies", Opt1 = "fishies"}},
-                        Result = @"lala (Text): fishies
-lala (Text): fishies"
+                        AssertContext = ctx => ctx.ParamValuesShouldBe("fishies", "fishies"),
+                        Output = @"lala (Text): fishies
+lala (Text): fishies
+"
                     }
                 });
         }
@@ -306,14 +339,18 @@ lala (Text): fishies"
         {
             new AppRunner<App>()
                 .UsePrompting(argumentFilter: arg => arg.Name == "arg1")
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given = {OnPrompt = Respond.With("something", prompt => prompt.StartsWith("arg1"))},
-                    WhenArgs = $"{nameof(App.Do)}",
+                    When =
+                    {
+                        Args = $"{nameof(App.Do)}",
+                        OnPrompt = Respond.WithText("something", prompt => prompt.StartsWith("arg1"))
+                    },
                     Then =
                     {
-                        Outputs = {new App.DoResult {Arg1 = "something"}},
-                        Result = @"arg1 (Text): something"
+                        AssertContext = ctx => ctx.ParamValuesShouldBe(null, "something"),
+                        Output = @"arg1 (Text): something
+"
                     }
                 });
         }
@@ -325,78 +362,54 @@ lala (Text): fishies"
             new AppRunner<App>()
                 .UsePrompting()
                 .AppendPipedInputToOperandList()
-                .VerifyScenario(_testOutputHelper, new Scenario
+                .Verify(new Scenario
                 {
-                    Given =
+                    When =
                     {
-                        OnPrompt = Respond.FailOnPrompt,
-                        PipedInput = pipedInput
+                        Args = $"{nameof(App.DoList)}",
+                        PipedInput = pipedInput,
+                        OnPrompt = Respond.FailOnPrompt()
                     },
-                    WhenArgs = $"{nameof(App.DoList)}",
-                    Then = { Outputs = { pipedInput.ToList() } }
+                    Then = {AssertContext = ctx => ctx.ParamValuesShouldBe(pipedInput.ToList())}
                 });
         }
 
         class App
         {
-            private TestOutputs TestOutputs { get; set; }
-
             public void Do([Option] string opt1, string arg1)
             {
-                TestOutputs.Capture(new DoResult{Opt1 = opt1, Arg1 = arg1});
             }
 
             public void DoList(List<string> args)
             {
-                TestOutputs.CaptureIfNotNull(args);
             }
 
             public void Secure(string user, Password password)
             {
-                TestOutputs.Capture(new SecureResult{User = user, Password = password});
             }
 
             public void Flags(
-                [Option(ShortName = "a")] bool flagA,
-                [Option(ShortName = "b")] bool flagB)
+                [Option(ShortName = "a", LongName = null)] bool flagA,
+                [Option(ShortName = "b", LongName = null)] bool flagB)
             {
-                TestOutputs.Capture((flagA, flagB));
             }
 
             public void Bool(bool operand1)
             {
-                TestOutputs.Capture(operand1);
-            }
-
-            public class DoResult
-            {
-                public string Opt1; 
-                public string Arg1;
-            }
-
-            public class SecureResult
-            {
-                public string User;
-                public Password Password;
             }
         }
 
         class HierApp
         {
-            private TestOutputs TestOutputs { get; set; }
-
-            public Task<int> Intercept(InterceptorExecutionDelegate next, int intercept1, [Option(AssignToExecutableSubcommands = true)] int inherited1)
+            public Task<int> Intercept(InterceptorExecutionDelegate next, 
+                int intercept1, 
+                [Option(AssignToExecutableSubcommands = true)] int inherited1)
             {
-                TestOutputs.Capture(new InterceptResult { Intercept1 = intercept1, Inherited1 = inherited1 });
                 return next();
             }
 
-            public void Do() { }
-
-            public class InterceptResult
+            public void Do()
             {
-                public int Intercept1 { get; set; }
-                public int Inherited1 { get; set; }
             }
         }
     }

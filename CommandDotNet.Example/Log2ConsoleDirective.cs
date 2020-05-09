@@ -17,14 +17,14 @@ namespace CommandDotNet.Example
         internal static AppRunner UseLog2ConsoleDirective(this AppRunner appRunner)
         {
             return appRunner.Configure(c =>
-                c.UseMiddleware(LogToConsole, MiddlewareStages.PreTokenize, int.MinValue));
+                c.UseMiddleware(LogToConsole, new MiddlewareStep(MiddlewareStages.PreTokenize, short.MinValue)));
         }
 
         private static Task<int> LogToConsole(CommandContext context, ExecutionDelegate next)
         {
             if(context.Tokens.TryGetDirective("log", out var logDirective))
             {
-                var parts = logDirective.Split(':', '=');
+                var parts = logDirective!.Split(':', '=');
                 var level = parts.Length > 1
                     ? (LogLevel) Enum.Parse(typeof(LogLevel), parts[1], ignoreCase: true) 
                     : LogLevel.Trace;
@@ -37,7 +37,7 @@ namespace CommandDotNet.Example
             return next(context);
         }
 
-        private static string GetDateTimeFormat(string[] parts)
+        private static string? GetDateTimeFormat(string[] parts)
         {
             if (parts.Length < 3)
             {
@@ -60,9 +60,9 @@ namespace CommandDotNet.Example
         {
             private readonly IConsole _console;
             private readonly LogLevel _level;
-            private readonly string _dateTimeFormat;
+            private readonly string? _dateTimeFormat;
 
-            public ConsoleLogProvider(IConsole console, LogLevel level, string dateTimeFormat)
+            public ConsoleLogProvider(IConsole console, LogLevel level, string? dateTimeFormat)
             {
                 _console = console ?? throw new ArgumentNullException(nameof(console));
                 _level = level;

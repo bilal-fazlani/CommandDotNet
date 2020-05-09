@@ -1,8 +1,7 @@
 # Direct dependencies
-mkdocs>=1.0
-mkdocs-material>=4
-Pygments>=2.4
-markdown>=3.2
-pymdown-extensions>=6.3,<7
-# mkdocs-git-revision-date-localized-plugin==0.4.6
+mkdocs>=1.1,<2
+mkdocs-material>=5,<6
+Pygments>=2.4,<3
+markdown>=3.2,<4
+pymdown-extensions>=7,<8
 mkdocs-autolinks-plugin

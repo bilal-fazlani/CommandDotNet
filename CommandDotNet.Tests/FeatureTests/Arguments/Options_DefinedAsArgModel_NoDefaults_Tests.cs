@@ -1,30 +1,32 @@
 using System;
 using System.Collections.Generic;
 using CommandDotNet.Tests.FeatureTests.Arguments.Models.ArgsAsArgModels;
-using CommandDotNet.Tests.ScenarioFramework;
-using CommandDotNet.TestTools;
+using CommandDotNet.Tests.Utils;
+using CommandDotNet.TestTools.Scenarios;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CommandDotNet.Tests.FeatureTests.Arguments
 {
-    public class Options_DefinedAsArgModel_NoDefaults_Tests : TestBase
+    public class Options_DefinedAsArgModel_NoDefaults_Tests
     {
         private static readonly AppSettings BasicHelp = TestAppSettings.BasicHelp;
         private static readonly AppSettings DetailedHelp = TestAppSettings.DetailedHelp;
 
-        public Options_DefinedAsArgModel_NoDefaults_Tests(ITestOutputHelper output) : base(output)
+        public Options_DefinedAsArgModel_NoDefaults_Tests(ITestOutputHelper output)
         {
+            Ambient.Output = output;
         }
 
         [Fact]
         public void SampleTypes_BasicHelp()
         {
-            Verify(new Scenario<OptionsNoDefaults>
+            new AppRunner<OptionsNoDefaults>(BasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = BasicHelp },
-                WhenArgs = "ArgsDefaults -h",
-                Then = { Result = @"Usage: dotnet testhost.dll ArgsDefaults [options]
+                When = {Args = "ArgsDefaults -h"},
+                Then =
+                {
+                    Output = @"Usage: dotnet testhost.dll ArgsDefaults [options]
 
 Options:
   --BoolArg
@@ -36,18 +38,21 @@ Options:
   --StringListArg
   --StructListArg
   --EnumListArg
-  --ObjectListArg" }
+  --ObjectListArg
+"
+                }
             });
         }
 
         [Fact]
         public void SampleTypes_DetailedHelp()
         {
-            Verify(new Scenario<OptionsNoDefaults>
+            new AppRunner<OptionsNoDefaults>(DetailedHelp).Verify(new Scenario
             {
-                Given = { AppSettings = DetailedHelp },
-                WhenArgs = "ArgsDefaults -h",
-                Then = { Result = @"Usage: dotnet testhost.dll ArgsDefaults [options]
+                When = {Args = "ArgsDefaults -h"},
+                Then =
+                {
+                    Output = @"Usage: dotnet testhost.dll ArgsDefaults [options]
 
 Options:
 
@@ -71,39 +76,42 @@ Options:
   --EnumListArg (Multiple)    <DAYOFWEEK>
   Allowed values: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday
 
-  --ObjectListArg (Multiple)  <URI>" }
+  --ObjectListArg (Multiple)  <URI>
+"
+                }
             });
         }
 
         [Fact]
         public void SampleTypes_Exec_Named()
         {
-            Verify(new Scenario<OptionsNoDefaults>
+            new AppRunner<OptionsNoDefaults>().Verify(new Scenario
             {
-                WhenArgs = "ArgsDefaults --StringArg green --StructArg 1 --StructNArg 2 " +
+                When = {Args = "ArgsDefaults --StringArg green --StructArg 1 --StructNArg 2 " +
                            "--EnumArg Monday --ObjectArg http://google.com " +
                            "--StringListArg yellow --StringListArg orange " +
                            "--StructListArg 23 --StructListArg 5 " +
                            "--EnumListArg Friday --EnumListArg Tuesday " +
-                           "--ObjectListArg http://apple.com --ObjectListArg http://github.com",
+                           "--ObjectListArg http://apple.com --ObjectListArg http://github.com"},
                 Then =
                 {
-                    Outputs = { new OptionsNoDefaultsSampleTypesModel
-                    {
-                        StringArg = "green",
-                        StructArg = 1,
-                        StructNArg = 2,
-                        EnumArg = DayOfWeek.Monday,
-                        ObjectArg = new Uri("http://google.com"),
-                        StringListArg = new List<string>{"yellow", "orange"},
-                        StructListArg = new List<int>{23,5},
-                        EnumListArg = new List<DayOfWeek>{DayOfWeek.Friday, DayOfWeek.Tuesday},
-                        ObjectListArg = new List<Uri>
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(
+                        new OptionsNoDefaultsSampleTypesModel
                         {
-                            new Uri("http://apple.com"),
-                            new Uri("http://github.com"),
-                        }
-                    } }
+                            StringArg = "green",
+                            StructArg = 1,
+                            StructNArg = 2,
+                            EnumArg = DayOfWeek.Monday,
+                            ObjectArg = new Uri("http://google.com"),
+                            StringListArg = new List<string>{"yellow", "orange"},
+                            StructListArg = new List<int>{23,5},
+                            EnumListArg = new List<DayOfWeek>{DayOfWeek.Friday, DayOfWeek.Tuesday},
+                            ObjectListArg = new List<Uri>
+                            {
+                                new Uri("http://apple.com"),
+                                new Uri("http://github.com"),
+                            }
+                        })
                 }
             });
         }
@@ -111,23 +119,20 @@ Options:
         [Fact]
         public void SampleTypes_Exec_OptionsNotRequired()
         {
-            Verify(new Scenario<OptionsNoDefaults>
+            new AppRunner<OptionsNoDefaults>().Verify(new Scenario
             {
-                WhenArgs = "ArgsDefaults",
+                When = {Args = "ArgsDefaults"},
                 Then =
                 {
-                    Outputs = { new OptionsNoDefaultsSampleTypesModel() }
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(new OptionsNoDefaultsSampleTypesModel())
                 }
             });
         }
 
         private class OptionsNoDefaults
         {
-            private TestOutputs TestOutputs { get; set; }
-
             public void ArgsDefaults(OptionsNoDefaultsSampleTypesModel model)
             {
-                TestOutputs.Capture(model);
             }
         }
     }

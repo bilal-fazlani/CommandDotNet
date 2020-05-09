@@ -5,7 +5,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CommandDotNet.CommandLogger\CommandDotNet.CommandLogger.csproj" />
     <ProjectReference Include="..\CommandDotNet.FluentValidation\CommandDotNet.FluentValidation.csproj" />
     <ProjectReference Include="..\CommandDotNet.NewerReleasesAlerts\CommandDotNet.NewerReleasesAlerts.csproj" />
     <ProjectReference Include="..\CommandDotNet.NameCasing\CommandDotNet.NameCasing.csproj" />
@@ -16,6 +15,10 @@
     <PackageReference Include="FluentValidation.ValidatorAttribute" Version="8.0.0" />
     <PackageReference Include="Humanizer.Core" Version="2.7.9" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Nullable" Version="1.2.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
   </ItemGroup>
 </Project>

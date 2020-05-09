@@ -1,20 +1,23 @@
-﻿namespace CommandDotNet
+﻿using System;
+
+namespace CommandDotNet
 {
     public class CommandNodeType
     {
-        public static readonly CommandNodeType Command = new CommandNodeType {IsCommand = true, _name = nameof(Command)};
-        public static readonly CommandNodeType Operand = new CommandNodeType {IsOperand = true, _name = nameof(Operand)};
-        public static readonly CommandNodeType Option = new CommandNodeType {IsOption = true, _name = nameof(Option)};
+        public static readonly CommandNodeType Command = new CommandNodeType(nameof(Command)) {IsCommand = true};
+        public static readonly CommandNodeType Operand = new CommandNodeType(nameof(Operand)) {IsOperand = true};
+        public static readonly CommandNodeType Option = new CommandNodeType(nameof(Option)) {IsOption = true};
 
-        private string _name;
+        private readonly string _name;
 
         public bool IsCommand { get; private set; }
         public bool IsOperand { get; private set; }
         public bool IsOption { get; private set; }
         public bool IsArgument => IsOperand || IsOption;
 
-        private CommandNodeType()
+        private CommandNodeType(string name)
         {
+            _name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         public override string ToString()

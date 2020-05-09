@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using CommandDotNet.Execution;
 using CommandDotNet.Parsing;
 
 namespace CommandDotNet.Tokens
@@ -13,7 +12,7 @@ namespace CommandDotNet.Tokens
 
         private static IEnumerable<Token> ExpandClubbedOption(Token token)
         {
-            if (token.TokenType == TokenType.Option && token.OptionTokenType.IsClubbed)
+            if (token.TokenType == TokenType.Option && token.OptionTokenType!.IsClubbed)
             {
                 foreach (var flag in token.Value.ToCharArray())
                 {

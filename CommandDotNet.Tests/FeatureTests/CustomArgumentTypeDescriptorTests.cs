@@ -1,19 +1,20 @@
 using System;
-using CommandDotNet.Tests.ScenarioFramework;
-using CommandDotNet.TestTools;
+using CommandDotNet.Tests.Utils;
+using CommandDotNet.TestTools.Scenarios;
 using CommandDotNet.TypeDescriptors;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CommandDotNet.Tests.FeatureTests
 {
-    public class CustomArgumentTypeDescriptorTests : TestBase
+    public class CustomArgumentTypeDescriptorTests
     {
         private static readonly AppSettings BasicHelpWithDescriptor = TestAppSettings.BasicHelp;
         private static readonly AppSettings DetailedHelpWithDescriptor = TestAppSettings.DetailedHelp;
 
-        public CustomArgumentTypeDescriptorTests(ITestOutputHelper output) : base(output)
+        public CustomArgumentTypeDescriptorTests(ITestOutputHelper output)
         {
+            Ambient.Output = output;
             var descriptor = new SquareTypeDescriptor();
             BasicHelpWithDescriptor.ArgumentTypeDescriptors.Add(descriptor);
             DetailedHelpWithDescriptor.ArgumentTypeDescriptors.Add(descriptor);
@@ -22,69 +23,71 @@ namespace CommandDotNet.Tests.FeatureTests
         [Fact]
         public void BasicHelp_IncludesParam()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(BasicHelpWithDescriptor).Verify(new Scenario
             {
-                Given = { AppSettings = BasicHelpWithDescriptor },
-                WhenArgs = "Do -h",
-                Then = { Result = @"Usage: dotnet testhost.dll Do [arguments]
+                When = {Args = "Do -h"},
+                Then =
+                {
+                    Output = @"Usage: dotnet testhost.dll Do <square>
 
 Arguments:
-  square" }
+  square
+"
+                }
             });
         }
 
         [Fact]
-        public void DetailedHelp_IncludesParamAndDisplayNameFromDecriptor()
+        public void DetailedHelp_IncludesParamAndDisplayNameFromDescriptor()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(DetailedHelpWithDescriptor).Verify(new Scenario
             {
-                Given = { AppSettings = DetailedHelpWithDescriptor },
-                WhenArgs = "Do -h",
-                Then = { Result = @"Usage: dotnet testhost.dll Do [arguments]
+                When = {Args = "Do -h"},
+                Then =
+                {
+                    Output = @"Usage: dotnet testhost.dll Do <square>
 
 Arguments:
 
-  square  <!!SQUARE!!>" }
+  square  <!!SQUARE!!>
+"
+                }
             });
         }
 
         [Fact]
         public void Exec_ParseArgumentUsingDescriptor()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(BasicHelpWithDescriptor).Verify(new Scenario
             {
-                Given = { AppSettings = BasicHelpWithDescriptor },
-                WhenArgs = "Do 2x3",
-                Then = { Outputs = { new Square { Length = 2, Width = 3 } } }
+                When = {Args = "Do 2x3"},
+                Then = {AssertContext = ctx => ctx.ParamValuesShouldBe(new Square {Length = 2, Width = 3})}
             });
         }
 
         [Fact]
         public void Exec_WhenDescriptorIsNotRegistered_FailsWithActionableMessage()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>().Verify(new Scenario
             {
-                WhenArgs = "Do ",
+                When = {Args = "Do "},
                 Then =
                 {
                     ExitCode = 1,
-                    ResultsContainsTexts =
+                    OutputContainsTexts =
                     {
-                        "type : CommandDotNet.Tests.FeatureTests.CustomArgumentTypeDescriptorTests+Square is not supported. ",
-                        "If it is an argument model, inherit from IArgumentModel. ",
+                        "type : CommandDotNet.Tests.FeatureTests.CustomArgumentTypeDescriptorTests+Square is not supported.",
+                        "If it is an argument model, inherit from IArgumentModel.",
                         "Otherwise, to support this type, implement a TypeConverter or IArgumentTypeDescriptor or add a constructor with a single string parameter."
                     }
                 }
             });
         }
 
-        public class App
+        private class App
         {
-            private TestOutputs TestOutputs { get; set; }
-
             public void Do(Square square)
             {
-                TestOutputs.Capture(square);
             }
         }
 

@@ -1,108 +1,102 @@
 using System.Collections.Generic;
-using CommandDotNet.Tests.ScenarioFramework;
-using CommandDotNet.TestTools;
+using CommandDotNet.Tests.Utils;
+using CommandDotNet.TestTools.Scenarios;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CommandDotNet.Tests.FeatureTests.Arguments
 {
-    public class EnumerableArgTypesTests : TestBase
+    public class EnumerableArgTypesTests
     {
         private static readonly AppSettings BasicHelp = TestAppSettings.BasicHelp;
         private static readonly AppSettings DetailedHelp = TestAppSettings.DetailedHelp;
 
-        public EnumerableArgTypesTests(ITestOutputHelper output) : base(output)
+        public EnumerableArgTypesTests(ITestOutputHelper output)
         {
+            Ambient.Output = output;
         }
 
         [Fact]
         public void EnumerableModel_BasicHelp_Includes_Arguments()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(BasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = BasicHelp },
-                WhenArgs = "EnumerableModel -h",
-                Then = { Result = @"Usage: dotnet testhost.dll EnumerableModel [options] [arguments]
+                When = {Args = "EnumerableModel -h"},
+                Then = { Output = @"Usage: dotnet testhost.dll EnumerableModel [options] <Operands>
 
 Arguments:
-  Args
+  Operands
 
 Options:
-  --Options" }
+  --Options
+" }
             });
         }
 
         [Fact]
         public void EnumerableModel_DetailedHelp_Includes_ArgumentsAsMultiple()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(DetailedHelp).Verify(new Scenario
             {
-                Given = { AppSettings = DetailedHelp },
-                WhenArgs = "EnumerableModel -h",
-                Then = { Result = @"Usage: dotnet testhost.dll EnumerableModel [options] [arguments]
+                When = {Args = "EnumerableModel -h"},
+                Then = { Output = @"Usage: dotnet testhost.dll EnumerableModel [options] <Operands>
 
 Arguments:
 
-  Args (Multiple)  <TEXT>
+  Operands (Multiple)  <TEXT>
 
 Options:
 
-  --Options (Multiple)  <TEXT>" }
+  --Options (Multiple)  <TEXT>
+" }
             });
         }
 
         [Fact]
         public void EnumerableParams_BasicHelp_Includes_Arguments()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(BasicHelp).Verify(new Scenario
             {
-                Given = {AppSettings = BasicHelp},
-                WhenArgs = "Enumerable -h",
-                Then = {Result = @"Usage: dotnet testhost.dll Enumerable [options] [arguments]
+                When = {Args = "Enumerable -h"},
+                Then = {Output = @"Usage: dotnet testhost.dll Enumerable [options] <operands>
 
 Arguments:
-  args
+  operands
 
 Options:
-  --options" }
+  --options
+" }
             });
         }
 
         [Fact]
         public void EnumerableParams_DetailedHelp_Includes_ArgumentsAsMultiple()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(DetailedHelp).Verify(new Scenario
             {
-                Given = {AppSettings = DetailedHelp},
-                WhenArgs = "Enumerable -h",
-                Then = {Result = @"Usage: dotnet testhost.dll Enumerable [options] [arguments]
+                When = {Args = "Enumerable -h"},
+                Then = {Output = @"Usage: dotnet testhost.dll Enumerable [options] <operands>
 
 Arguments:
 
-  args (Multiple)  <TEXT>
+  operands (Multiple)  <TEXT>
 
 Options:
 
-  --options (Multiple)  <TEXT>" }
+  --options (Multiple)  <TEXT>
+" }
             });
         }
 
         [Fact]
         public void EnumerableParams_Exec_MapsArguments()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>().Verify(new Scenario
             {
-                WhenArgs = "Enumerable --options aaa --options bbb ccc ddd",
+                When = {Args = "Enumerable --options aaa --options bbb ccc ddd"},
                 Then =
                 {
-                    Outputs =
-                    {
-                        new EnumerableModel
-                        {
-                            Options = new[] {"aaa", "bbb"},
-                            Args = new[] {"ccc", "ddd"}
-                        }
-                    }
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(new[] {"aaa", "bbb"}, new[] {"ccc", "ddd"})
                 }
             });
         }
@@ -110,19 +104,16 @@ Options:
         [Fact]
         public void EnumerableModel_Exec_MapsArguments()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>().Verify(new Scenario
             {
-                WhenArgs = "EnumerableModel --Options aaa --Options bbb ccc ddd",
+                When = {Args = "EnumerableModel --Options aaa --Options bbb ccc ddd"},
                 Then =
                 {
-                    Outputs =
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(new EnumerableModel
                     {
-                        new EnumerableModel
-                        {
-                            Options = new[] {"aaa", "bbb"},
-                            Args = new[] {"ccc", "ddd"}
-                        }
-                    }
+                        Options = new[] {"aaa", "bbb"},
+                        Operands = new[] {"ccc", "ddd"}
+                    })
                 }
             });
         }
@@ -130,19 +121,12 @@ Options:
         [Fact]
         public void CollectionParams_Exec_MapsArguments()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>().Verify(new Scenario
             {
-                WhenArgs = "Collection --options aaa --options bbb ccc ddd",
+                When = {Args = "Collection --options aaa --options bbb ccc ddd"},
                 Then =
                 {
-                    Outputs =
-                    {
-                        new EnumerableModel
-                        {
-                            Options = new[] {"aaa", "bbb"},
-                            Args = new[] {"ccc", "ddd"}
-                        }
-                    }
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(new[] {"aaa", "bbb"}, new[] {"ccc", "ddd"})
                 }
             });
         }
@@ -150,56 +134,46 @@ Options:
         [Fact]
         public void ArrayParams_Exec_MapsArguments()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>().Verify(new Scenario
             {
-                WhenArgs = "Array --options aaa --options bbb ccc ddd",
+                When = {Args = "Array --options aaa --options bbb ccc ddd"},
                 Then =
                 {
-                    Outputs =
-                    {
-                        new EnumerableModel
-                        {
-                            Options = new[] {"aaa", "bbb"},
-                            Args = new[] {"ccc", "ddd"}
-                        }
-                    }
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(new[] {"aaa", "bbb"}, new[] {"ccc", "ddd"})
                 }
             });
         }
 
-        public class App
+        private class App
         {
-            private TestOutputs TestOutputs { get; set; }
-
-            public void List([Option]List<string> options, List<string> args)
+            public void List([Option]List<string> options, List<string> operands)
             {
-                TestOutputs.Capture(new EnumerableModel { Options = options, Args = args });
             }
 
-            public void Enumerable([Option]IEnumerable<string> options, IEnumerable<string> args)
+            public void Enumerable([Option]IEnumerable<string> options, IEnumerable<string> operands)
             {
-                TestOutputs.Capture(new EnumerableModel{Options = options, Args = args});
             }
 
             public void EnumerableModel(EnumerableModel model)
             {
-                TestOutputs.Capture(model);
             }
 
-            public void Collection([Option]ICollection<string> options, ICollection<string> args)
+            public void Collection([Option]ICollection<string> options, ICollection<string> operands)
             {
-                TestOutputs.Capture(new EnumerableModel { Options = options, Args = args });
             }
 
-            public void Array([Option]string[] options, string[] args) => TestOutputs.Capture(new EnumerableModel { Options = options, Args = args });
+            public void Array([Option] string[] options, string[] operands)
+            {
+            }
         }
 
-        public class EnumerableModel : IArgumentModel
+        private class EnumerableModel : IArgumentModel
         {
             [Option]
-            public IEnumerable<string> Options { get; set; }
+            public IEnumerable<string> Options { get; set; } = null!;
 
-            public IEnumerable<string> Args { get; set; }
+            [Operand]
+            public IEnumerable<string> Operands { get; set; } = null!;
         }
     }
 }

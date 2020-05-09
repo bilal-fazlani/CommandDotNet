@@ -8,7 +8,7 @@ namespace CommandDotNet.Execution
     {
         private readonly Dictionary<Type, object> _servicesByType = new Dictionary<Type, object>();
 
-        public void Add<T>(T value)
+        public void Add<T>(T value) where T : class
         {
             Add(typeof(T), value);
         }
@@ -31,7 +31,7 @@ namespace CommandDotNet.Execution
             _servicesByType.Add(type, value);
         }
 
-        public void AddOrUpdate<T>(T value)
+        public void AddOrUpdate<T>(T value) where T : class
         {
             AddOrUpdate(typeof(T), value);
         }
@@ -50,14 +50,56 @@ namespace CommandDotNet.Execution
             _servicesByType[type] = value;
         }
 
-        public T Get<T>()
+        public T GetOrAdd<T>(Func<T> factory) where T : class
         {
-            return (T)Get(typeof(T));
+            return (T) GetOrAdd(typeof(T), factory);
         }
 
-        public object Get(Type type)
+        public object GetOrAdd(Type type, Func<object> factory)
         {
-            return _servicesByType.GetValueOrDefault(type);
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            var value = GetOrDefault(type);
+            if (value == null)
+            {
+                value = factory();
+                if (value == null)
+                {
+                    throw new AppRunnerException($"'{factory}' returned null");
+                }
+                Add(type, value);
+            }
+
+            return value;
+        }
+
+        public T? GetOrDefault<T>() where T : class
+        {
+            return (T?)GetOrDefault(typeof(T));
+        }
+
+        public object? GetOrDefault(Type type)
+        {
+            return _servicesByType.TryGetValue(type, out var value)
+                ? value
+                : null;
+        }
+
+        public T GetOrThrow<T>() where T : class
+        {
+            return (T)GetOrThrow(typeof(T));
+        }
+
+        public object GetOrThrow(Type type)
+        {
+            if (!_servicesByType.ContainsKey(type))
+            {
+                throw new ArgumentOutOfRangeException($"no service exists for type '{type}'");
+            }
+            return _servicesByType[type];
         }
 
         public ICollection<KeyValuePair<Type, object>> GetAll()

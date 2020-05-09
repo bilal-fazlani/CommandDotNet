@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using CommandDotNet.Execution;
 using CommandDotNet.Extensions;
 
@@ -12,7 +11,7 @@ namespace CommandDotNet.ClassModeling.Definitions
     internal class ClassCommandDef : ICommandDef
     {
         private readonly CommandContext _commandContext;
-        private readonly ICommandDef _defaultCommandDef;
+        private readonly ICommandDef? _defaultCommandDef;
         private readonly Lazy<List<ICommandDef>> _subCommands;
 
         public string Name { get; }
@@ -22,15 +21,15 @@ namespace CommandDotNet.ClassModeling.Definitions
 
         public ICustomAttributeProvider CustomAttributes => CommandHostClassType;
 
-        public bool IsExecutable => _defaultCommandDef.IsExecutable;
+        public bool IsExecutable => _defaultCommandDef?.IsExecutable ?? false;
 
-        public bool HasInterceptor => InterceptorMethodDef != null && InterceptorMethodDef != NullMethodDef.Instance;
+        public bool HasInterceptor => InterceptorMethodDef != null;
 
         public IReadOnlyCollection<ICommandDef> SubCommands => _subCommands.Value;
 
-        public IMethodDef InterceptorMethodDef { get; }
+        public IMethodDef? InterceptorMethodDef { get; }
 
-        public IMethodDef InvokeMethodDef => _defaultCommandDef.InvokeMethodDef;
+        public IMethodDef? InvokeMethodDef => _defaultCommandDef?.InvokeMethodDef;
 
         public static Command CreateRootCommand(Type rootAppType, CommandContext commandContext)
         {
@@ -64,10 +63,10 @@ namespace CommandDotNet.ClassModeling.Definitions
             _subCommands = new Lazy<List<ICommandDef>>(() => GetSubCommands(localCommands));
         }
 
-        private (IMethodDef interceptorMethod, ICommandDef defaultCommand, List<ICommandDef> localCommands) ParseMethods(AppConfig appConfig)
+        private (IMethodDef? interceptorMethod, ICommandDef? defaultCommand, List<ICommandDef> localCommands) ParseMethods(AppConfig appConfig)
         {
-            MethodInfo interceptorMethodInfo = null;
-            MethodInfo defaultCommandMethodInfo = null;
+            MethodInfo? interceptorMethodInfo = null;
+            MethodInfo? defaultCommandMethodInfo = null;
             List<MethodInfo> localCommandMethodInfos = new List<MethodInfo>();
 
             foreach (var method in CommandHostClassType.GetDeclaredMethods())
@@ -86,7 +85,7 @@ namespace CommandDotNet.ClassModeling.Definitions
                                                                 $"{MethodDef.MiddlewareNextParameterType} or {MethodDef.InterceptorNextParameterType}.");
                     }
 
-                    var emDelegate = new ExecutionMiddleware((context, next) => Task.FromResult(1)).Method;
+                    var emDelegate = new ExecutionMiddleware((context, next) => ExitCodes.Error).Method;
                     if (method.ReturnType != emDelegate.ReturnType)
                     {
                         throw new InvalidConfigurationException($"`{CommandHostClassType}.{method.Name}` must return type of {emDelegate.ReturnType}.");
@@ -109,11 +108,11 @@ namespace CommandDotNet.ClassModeling.Definitions
             }
 
             var interceptorMethod = interceptorMethodInfo == null 
-                ? NullMethodDef.Instance 
+                ? null
                 : new MethodDef(interceptorMethodInfo, appConfig);
 
             var defaultCommand = defaultCommandMethodInfo == null
-                ? (ICommandDef)new NullCommandDef(Name)
+                ? null
                 : new MethodCommandDef(defaultCommandMethodInfo, CommandHostClassType, appConfig);
             
             return (

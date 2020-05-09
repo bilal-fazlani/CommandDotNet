@@ -18,6 +18,11 @@ namespace CommandDotNet.Tokens
 
         public IEnumerable<string> Split(string commandLine)
         {
+            if (commandLine.IsNullOrEmpty())
+            {
+                yield break;
+            }
+
             var memory = commandLine.ToCharArray();
 
             var startTokenIndex = 0;

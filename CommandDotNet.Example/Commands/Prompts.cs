@@ -27,17 +27,17 @@ namespace CommandDotNet.Example.Commands
                 if (username == null)
                 {
                     console.Out.WriteLine("username not provided");
-                    return Task.FromResult(1);
+                    return ExitCodes.Error;
                 }
 
                 var pwd = password?.GetPassword();
                 if (string.IsNullOrWhiteSpace(pwd))
                 {
                     console.Out.WriteLine("password not provided");
-                    return Task.FromResult(1);
+                    return ExitCodes.Error;
                 }
 
-                console.Out.WriteLine($"authenticated as user:{username} with password:{password}  (actual password:{password.GetPassword()})");
+                console.Out.WriteLine($"authenticated as user:{username} with password:{password}  (actual password:{pwd})");
 
                 return next();
             }

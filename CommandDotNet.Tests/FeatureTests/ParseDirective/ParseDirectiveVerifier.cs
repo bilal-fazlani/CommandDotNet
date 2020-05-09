@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using CommandDotNet.Execution;
 using CommandDotNet.TestTools.Scenarios;
 using FluentAssertions;
@@ -10,15 +9,13 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
 {
     public class ParseDirectiveVerifier
     {
-        private readonly ITestOutputHelper _output;
-
         public ParseDirectiveVerifier(ITestOutputHelper output)
         {
-            _output = output;
+            Ambient.Output = output;
         }
 
         public void Verify<TApp>(
-            string args, 
+            string? args, 
             bool includeTransforms = false,
             bool showsHelp = false,
             bool showsTokens = false,
@@ -28,25 +25,25 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
             bool throwBeforeBind = false,
             bool throwAtInvoke = false,
             bool exitBeforeBind = false,
-            string expectedParseResult = null,
-            string expectedResult = null) where TApp : class
+            string? expectedParseResult = null,
+            string? expectedResult = null) where TApp : class
         {
             var parse = includeTransforms ? "[parse:t]" : "[parse]";
 
             var contains = new List<string>();
             var notContains = new List<string>();
 
-            void containsIf(bool yes, string value)
+            void ContainsIf(bool yes, string value)
             {
-                (yes ? contains : notContains).Add(value);
+                (yes ? contains! : notContains!).Add(value);
             }
 
-            args = args ?? "";
+            args ??= "";
 
-            containsIf(showsHelp, "Usage: dotnet testhost.dll ");
-            containsIf(args == "-h" || args.Contains(" -h") || args.Contains("-h "),
+            ContainsIf(showsHelp, "Usage: dotnet testhost.dll ");
+            ContainsIf(args == "-h" || args.Contains(" -h") || args.Contains("-h "),
                 "Help requested. Only token transformations are available.");
-            containsIf(showsTokens, @"token transformations:
+            ContainsIf(showsTokens, @"token transformations:
 
 >>> from shell");
 
@@ -55,13 +52,13 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
                 contains.Add(expectedParseResult);
             }
 
-            containsIf (showsUnableToMapTokensToArgsMsg,
+            ContainsIf (showsUnableToMapTokensToArgsMsg,
                 "Unable to map tokens to arguments. Falling back to token transformations.");
             
-            containsIf(showsHelpRequestOnlyTokensAvailableMsg,
+            ContainsIf(showsHelpRequestOnlyTokensAvailableMsg,
                 "Help requested. Only token transformations are available.");
 
-            containsIf(showsHintToUseParseT,
+            ContainsIf(showsHintToUseParseT,
                 "Use [parse:T] to include token transformations");
 
             var appRunner = new AppRunner<TApp>();
@@ -69,7 +66,7 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
             if (exitBeforeBind)
             {
                 appRunner.Configure(c => 
-                    c.UseMiddleware((ctx, next) => Task.FromResult(0), 
+                    c.UseMiddleware((ctx, next) => ExitCodes.Success, 
                         MiddlewareStages.PostParseInputPreBindValues));
             }
 
@@ -86,35 +83,35 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
                 appRunner.Configure(c =>
                     c.UseMiddleware((ctx, next) => 
                             throw new Exception("throwAtInvoke exception"),
-                        MiddlewareStages.Invoke, int.MinValue));
+                        MiddlewareStages.Invoke, short.MinValue));
             }
 
             appRunner.Configure(c => 
                 c.UseMiddleware((ctx, next) => 
                         throw new Exception("parse should exit before method invocation"),
-                MiddlewareStages.Invoke, int.MaxValue-1));
+                MiddlewareStages.Invoke, short.MaxValue-1));
 
             var result = appRunner
                 .UseParseDirective()
-                .VerifyScenario(_output,
-                    new Scenario
+                .Verify(new Scenario
+                {
+                    When = {Args = $"{parse} {args}"},
+                    Then =
                     {
-                        WhenArgs = $"{parse} {args}",
-                        Then =
-                        {
-                            ExitCode = throwBeforeBind ? 1 : 0,
-                            Result = expectedResult,
-                            ResultsContainsTexts = contains,
-                            ResultsNotContainsTexts = notContains
-                        }
-                    });
+                        ExitCode = throwBeforeBind ? 1 : 0,
+                        Output = expectedResult,
+                        OutputContainsTexts = contains,
+                        OutputNotContainsTexts = notContains
+                    }
+                });
 
             if (showsHelp && showsTokens)
             {
                 // help before token transformations
-                var helpIndex = result.ConsoleOut.IndexOf("Usage: dotnet testhost.dll ");
-                var tokensIndex = result.ConsoleOut.IndexOf("token transformations:");
-                tokensIndex.Should().BeGreaterThan(helpIndex);
+                var consoleOut = result.Console.OutText();
+                var helpIndex = consoleOut.IndexOf("Usage: dotnet testhost.dll ");
+                var tokensIndex = consoleOut.IndexOf("token transformations:");
+                tokensIndex.Should().BeLessThan(helpIndex);
             }
         }
     }

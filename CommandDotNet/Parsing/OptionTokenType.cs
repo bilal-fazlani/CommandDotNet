@@ -30,7 +30,7 @@
             ? _value.Substring(0, _assignmentIndex)
             : _value;
 
-        public string GetAssignedValue() => HasValue
+        public string? GetAssignedValue() => HasValue
             ? _value.Substring(_assignmentIndex + 1)
             : null;
 

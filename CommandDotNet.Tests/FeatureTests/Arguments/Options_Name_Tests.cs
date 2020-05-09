@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using CommandDotNet.Execution;
 using CommandDotNet.TestTools;
@@ -9,54 +10,75 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
 {
     public class Options_Name_Tests
     {
-        private readonly Option[] _options;
+        private readonly Dictionary<string, Option> _options;
 
-        public Options_Name_Tests(ITestOutputHelper testOutputHelper)
+        public Options_Name_Tests(ITestOutputHelper output)
         {
-            Command cmd = null;
-            new AppRunner<App>()
-                .CaptureState(ctx => cmd = ctx.ParseResult.TargetCommand, MiddlewareStages.PostParseInputPreBindValues, exitAfterCapture: true)
-                .RunInMem("Do", testOutputHelper);
-            _options = cmd.Options.ToArray();
+            Ambient.Output = output;
+
+            _options = new AppRunner<App>()
+                .GetFromContext("Do".SplitArgs(),
+                    ctx => ctx.ParseResult!.TargetCommand.Options,
+                    middlewareStage: MiddlewareStages.PostParseInputPreBindValues)
+                .ToDictionary(o => o.DefinitionSource!.Split('.').Last());
         }
 
-        [Fact]
-        public void GivenOptionAttr_DoesNotDefineAName_UsesParameterName()
+        [InlineData(DefaultName, DefaultName)]
+        [InlineData(LongNameOverride, "longName1")]
+        [InlineData(ShortNameOverride, ShortNameOverride)]
+        [InlineData(ShortAndLongNameOverride, "longName2")]
+        [InlineData(LongNameNull, "c")]
+        [InlineData(LongNameEmpty, "d")]
+        [Theory]
+        public void NameShouldBe(string propertyName, string name)
         {
-            _options[0].Name.Should().Be("defaultName");
-            _options[0].ShortName.Should().BeNull();
+            var option = _options[propertyName];
+            option.Name.Should().Be(name);
         }
 
-        [Fact]
-        public void GivenOptionAttr_DefinesOnlyLongName_UsesLongName()
+        [InlineData(DefaultName, null)]
+        [InlineData(LongNameOverride, null)]
+        [InlineData(ShortNameOverride, 'a')]
+        [InlineData(ShortAndLongNameOverride, 'b')]
+        [InlineData(LongNameNull, 'c')]
+        [InlineData(LongNameEmpty, 'd')]
+        [Theory]
+        public void ShortNameShouldBe(string propertyName, char? shortName)
         {
-            _options[1].Name.Should().Be("longname");
-            _options[1].ShortName.Should().BeNull();
+            var option = _options[propertyName];
+            option.ShortName.Should().Be(shortName);
         }
 
-        [Fact]
-        public void GivenOptionAttr_DefinesOnlyShortName_UsesShortName()
+        [InlineData(DefaultName, DefaultName)]
+        [InlineData(LongNameOverride, "longName1")]
+        [InlineData(ShortNameOverride, ShortNameOverride)]
+        [InlineData(ShortAndLongNameOverride, "longName2")]
+        [InlineData(LongNameNull, null)]
+        [InlineData(LongNameEmpty, null)]
+        [Theory]
+        public void LongNameShouldBe(string propertyName, string longName)
         {
-            _options[2].Name.Should().Be("a");
-            _options[2].ShortName.Should().Be('a');
+            var option = _options[propertyName];
+            option.LongName.Should().Be(longName);
         }
 
-        [Fact]
-        public void GivenOptionAttr_DefinesLongAndShortName_UsesLongName()
-        {
-            _options[3].Name.Should().Be("blongname");
-            _options[3].ShortName.Should().Be('b');
-        }
+        private const string DefaultName = "defaultName";
+        private const string LongNameOverride = "longNameOverride";
+        private const string ShortNameOverride = "shortNameOverride";
+        private const string ShortAndLongNameOverride = "shortAndLongNameOverride";
+        private const string LongNameNull = "longNameNull";
+        private const string LongNameEmpty = "longNameEmpty";
 
         class App
         {
-            public int Do(
+            public void Do(
                 [Option] string defaultName,
-                [Option(LongName = "longname")] string useLongNameOverride,
-                [Option(ShortName = "a")] string useShortNameOnly,
-                [Option(ShortName = "b", LongName = "blongname")] string useShortAndLongName)
+                [Option(LongName = "longName1")] string longNameOverride,
+                [Option(ShortName = "a")] string shortNameOverride,
+                [Option(ShortName = "b", LongName = "longName2")] string shortAndLongNameOverride,
+                [Option(ShortName = "c", LongName = null)] string longNameNull,
+                [Option(ShortName = "d", LongName = "")] string longNameEmpty)
             {
-                return 1;
             }
         }
     }

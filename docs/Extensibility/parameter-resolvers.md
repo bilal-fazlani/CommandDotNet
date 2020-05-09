@@ -1,9 +1,12 @@
 # Parameter Resolvers
 
-Parameters defined in command and interceptor methods must be a valid paramter type as defined in [parameter-types](parameter-types.md).
+Parameters defined in command and interceptor methods must be a valid paramter type as defined in [Supported Argument Types](../Arguments/argument-types.md).
 
 There are times where your command method needs access to a service in the `CommandContext`, 
 say to write to the `IConsole` or perform a loop while checking the `CancellationToken`.
+
+!!! tip
+    Use `IConsole` in your methods instead of Console to simplify unit tests. [TestConsole](../TestTools/overview.md#testconsole) captures output and can mimic  input.  
 
 One way to get these is to define an interceptor method with a `CommandContext` parameter and copy the properties to fields for use in other methods. 
 This quickly gets repetitive and cumbersome.

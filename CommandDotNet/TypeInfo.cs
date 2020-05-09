@@ -8,11 +8,11 @@ namespace CommandDotNet
     {
         /// <summary>A bool with no display name</summary>
         public static readonly TypeInfo Flag = Single<bool>();
-
-        public static TypeInfo Single<T>(string displayName = null) => new TypeInfo(typeof(T), typeof(T), displayName);
-        public static TypeInfo Enumerable<T>(string displayName = null) => new TypeInfo(typeof(IEnumerable<T>), typeof(T), displayName);
-        public static TypeInfo List<T>(string displayName = null) => new TypeInfo(typeof(List<T>), typeof(T), displayName);
-        public static TypeInfo Array<T>(string displayName = null) => new TypeInfo(typeof(T[]), typeof(T), displayName);
+         
+        public static TypeInfo Single<T>(string? displayName = null) => new TypeInfo(typeof(T), typeof(T), displayName);
+        public static TypeInfo Enumerable<T>(string? displayName = null) => new TypeInfo(typeof(IEnumerable<T>), typeof(T), displayName);
+        public static TypeInfo List<T>(string? displayName = null) => new TypeInfo(typeof(List<T>), typeof(T), displayName);
+        public static TypeInfo Array<T>(string? displayName = null) => new TypeInfo(typeof(T[]), typeof(T), displayName);
 
         /// <summary>The type of the property or parameter defining an argument</summary>
         public Type Type { get; }
@@ -24,9 +24,9 @@ namespace CommandDotNet
         public Type UnderlyingType { get; }
 
         /// <summary>The name to display in help</summary>
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
-        public TypeInfo(Type type, Type underlyingType, string displayName = null)
+        public TypeInfo(Type type, Type underlyingType, string? displayName = null)
         {            
             Type = type ?? throw new ArgumentNullException(nameof(type));
             UnderlyingType = underlyingType ?? throw new ArgumentNullException(nameof(underlyingType));

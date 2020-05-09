@@ -7,22 +7,22 @@ namespace CommandDotNet.TestTools
 {
     public class TestToolsLogProvider : ILogProvider
     {
-        private ILogger _logger;
+        private Action<string>? _logLine;
 
-        public static IDisposable InitLogProvider(ILogger logger)
+        public static IDisposable InitLogProvider(Action<string> logLine)
         {
-            if (logger == null)
+            if (logLine == null)
             {
-                throw new ArgumentNullException(nameof(logger));
+                throw new ArgumentNullException(nameof(logLine));
             }
 
             if (LogProvider.CurrentLogProvider is TestToolsLogProvider provider)
             {
-                provider._logger = logger;
+                provider._logLine = logLine;
             }
             else
             {
-                provider = new TestToolsLogProvider { _logger = logger };
+                provider = new TestToolsLogProvider { _logLine = logLine };
                 LogProvider.SetCurrentLogProvider(provider);
             }
 
@@ -30,7 +30,7 @@ namespace CommandDotNet.TestTools
             return new DisposableAction(() => LogProvider.IsDisabled = true);
         }
 
-        public Logging.Logger GetLogger(string name)
+        public Logger GetLogger(string name)
         {
             return (level, messageFunc, exception, parameters) =>
             {
@@ -43,7 +43,7 @@ namespace CommandDotNet.TestTools
 
                 if (msg != null || exception != null)
                 {
-                    _logger?.WriteLine($"{level.ToString().First()} {name} > {msg} {exception}");
+                    _logLine?.Invoke($"{level.ToString().First()} {name} > {msg} {exception}");
                 }
 
                 return true;

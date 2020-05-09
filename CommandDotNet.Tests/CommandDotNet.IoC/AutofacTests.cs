@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-using Autofac;
+﻿using Autofac;
 using Autofac.Core.Registration;
-using CommandDotNet.Execution;
 using CommandDotNet.IoC.Autofac;
 using CommandDotNet.TestTools;
 using FluentAssertions;
@@ -13,11 +10,11 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
 {
     public class AutofacTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
+        private object LifetimeScopeTag => "CommandDotNet.CallContext";
 
-        public AutofacTests(ITestOutputHelper testOutputHelper)
+        public AutofacTests(ITestOutputHelper output)
         {
-            _testOutputHelper = testOutputHelper;
+            Ambient.Output = output;
         }
 
         [Fact]
@@ -25,9 +22,9 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
         {
             var container = ConfigureAutofacContainer();
 
-            new AppRunner<App>()
+            new AppRunner<IoCApp>()
                 .UseAutofac(container)
-                .RunInMem("Do", _testOutputHelper);
+                .RunInMem("Do");
         }
 
         [Fact]
@@ -35,9 +32,22 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
         {
             var container = ConfigureAutofacContainer();
 
-            new AppRunner<App>()
-                .UseAutofac(container, runInScope: ctx => container.BeginLifetimeScope())
-                .RunInMem("Do", _testOutputHelper);
+            ISomeIoCService svcBeforeRun;
+            using (var scope = container.BeginLifetimeScope(LifetimeScopeTag))
+            {
+                svcBeforeRun = container.Resolve<ISomeIoCService>();
+            }
+
+            var result = new AppRunner<IoCApp>()
+                .UseAutofac(container, runInScope: ctx => container.BeginLifetimeScope(LifetimeScopeTag))
+                .RunInMem("Do");
+
+            var app = result.CommandContext.GetCommandInvocationInfo<IoCApp>().Instance;
+
+            app!.FromCtor.Should().BeSameAs(app.FromInterceptor);
+
+            // TODO: why is this the same instance?
+            //app.FromCtor.Should().NotBeSameAs(svcBeforeRun);
         }
 
         [Fact]
@@ -46,60 +56,23 @@ namespace CommandDotNet.Tests.CommandDotNet.IoC
             var container = ConfigureAutofacContainer(skipApp: true);
 
             Assert.Throws<ComponentNotRegisteredException>(() =>
-                new AppRunner<App>()
-                    .UseAutofac(container, runInScope: ctx => container.BeginLifetimeScope())
-                    .RunInMem("Do", _testOutputHelper)
-            ).Message.Should().StartWith("The requested service 'CommandDotNet.Tests.CommandDotNet.IoC.AutofacTests+App'");
+                new AppRunner<IoCApp>()
+                    .UseAutofac(container, runInScope: ctx => container.BeginLifetimeScope(LifetimeScopeTag))
+                    .RunInMem("Do")
+            ).Message.Should().StartWith("The requested service 'CommandDotNet.Tests.CommandDotNet.IoC.IoCApp'");
 
         }
 
         private static IContainer ConfigureAutofacContainer(bool skipApp = false)
         {
-            ContainerBuilder containerBuilder = new ContainerBuilder();
+            var containerBuilder = new ContainerBuilder();
             if (!skipApp)
             {
-                containerBuilder.RegisterType<App>();
+                containerBuilder.RegisterType<IoCApp>().InstancePerLifetimeScope();
             }
-            containerBuilder.RegisterType<SomeService>().As<ISomeService>();
-            IContainer container = containerBuilder.Build();
-            return container;
+            containerBuilder.RegisterType<SomeIoCService>().InstancePerLifetimeScope();
+            containerBuilder.RegisterType<SomeIoCService>().As<ISomeIoCService>().InstancePerLifetimeScope();
+            return containerBuilder.Build();
         }
-
-        class App
-        {
-            private readonly ISomeService _someService;
-            private TestOutputs TestOutputs { get; set; }
-
-            public App(ISomeService someService)
-            {
-                _someService = someService;
-            }
-
-            public Task<int> Intercept(CommandContext context, ExecutionDelegate next)
-            {
-                TestOutputs.Capture(new Services
-                {
-                    FromCtor = _someService,
-                    FromInterceptor = (ISomeService)context.AppConfig.DependencyResolver.Resolve(typeof(ISomeService))
-                });
-                return next(context);
-            }
-
-            public void Do()
-            {
-                if(_someService == null)
-                    throw new Exception("SomeService was not injected");
-            }
-
-            public class Services
-            {
-                public ISomeService FromCtor { get; set; }
-                public ISomeService FromInterceptor { get; set; }
-            }
-        }
-
-        public interface ISomeService { }
-
-        public class SomeService : ISomeService { }
     }
 }

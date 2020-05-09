@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using CommandDotNet.Extensions;
 using CommandDotNet.TypeDescriptors;
 
 namespace CommandDotNet.Parsing
@@ -13,9 +13,18 @@ namespace CommandDotNet.Parsing
             _argumentTypeDescriptor = argumentTypeDescriptor;
         }
 
-        public object Parse(IArgument argument, IEnumerable<string> values)
+        public object? Parse(IArgument argument, IEnumerable<string> values)
         {
-            return _argumentTypeDescriptor.ParseString(argument, values.SingleOrDefault());
+            var value = values.SingleOrDefaultOrThrow(() => ThrowMultiForSingleEx(argument));
+            return value is null
+                ? null
+                : _argumentTypeDescriptor.ParseString(argument, value);
+        }
+
+        private static void ThrowMultiForSingleEx(IArgument argument)
+        {
+            var message = $"{argument.Name} accepts only a single value but multiple values were provided";
+            throw new ValueParsingException(message);
         }
     }
 }

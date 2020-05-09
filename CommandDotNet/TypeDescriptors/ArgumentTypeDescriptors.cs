@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -7,7 +8,7 @@ using CommandDotNet.Extensions;
 
 namespace CommandDotNet.TypeDescriptors
 {
-    public class ArgumentTypeDescriptors: IIndentableToString
+    public class ArgumentTypeDescriptors: IEnumerable<IArgumentTypeDescriptor>, IIndentableToString
     {
         private readonly List<IArgumentTypeDescriptor> _customDescriptors = new List<IArgumentTypeDescriptor>();
 
@@ -69,12 +70,22 @@ namespace CommandDotNet.TypeDescriptors
                        Environment.NewLine +
                        $"If it is an argument model, inherit from {nameof(IArgumentModel)}. " + 
                        Environment.NewLine +
-                       $"If it is a service and not an argument, register using " +
+                       "If it is a service and not an argument, register using " +
                        $"{nameof(AppRunner)}.{nameof(AppRunner.Configure)}(b => b.{nameof(AppConfigBuilder.UseParameterResolver)}(ctx => ...)); " +
                        Environment.NewLine +
                        "Otherwise, to support this type, " +
                        $"implement a {nameof(TypeConverter)} or {nameof(IArgumentTypeDescriptor)} " +
                        "or add a constructor with a single string parameter.");
+        }
+
+        public IEnumerator<IArgumentTypeDescriptor> GetEnumerator()
+        {
+            return _defaultDescriptors.Concat(_customDescriptors).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         public override string ToString()

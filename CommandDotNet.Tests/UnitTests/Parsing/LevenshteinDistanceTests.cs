@@ -1,5 +1,4 @@
-﻿
-using CommandDotNet.Parsing;
+﻿using CommandDotNet.Parsing.Typos;
 using FluentAssertions;
 using Xunit;
 

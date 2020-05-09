@@ -1,94 +1,105 @@
 using System.Collections.Generic;
-using CommandDotNet.Tests.ScenarioFramework;
-using CommandDotNet.TestTools;
+using CommandDotNet.Tests.Utils;
+using CommandDotNet.TestTools.Scenarios;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CommandDotNet.Tests.FeatureTests.Arguments
 {
-    public class StringCtorObjectsAsArgumentsTests : TestBase
+    public class StringCtorObjectsAsArgumentsTests
     {
         private static readonly AppSettings BasicHelp = TestAppSettings.BasicHelp;
         private static readonly AppSettings DetailedHelp = TestAppSettings.DetailedHelp;
 
-        public StringCtorObjectsAsArgumentsTests(ITestOutputHelper output) : base(output)
+        public StringCtorObjectsAsArgumentsTests(ITestOutputHelper output)
         {
+            Ambient.Output = output;
         }
 
         [Fact]
         public void BasicHelp_Includes_StringCtorObjects()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(BasicHelp).Verify(new Scenario
             {
-                Given = {AppSettings = BasicHelp},
-                WhenArgs = "Do -h",
-                Then = {Result = @"Usage: dotnet testhost.dll Do [arguments]
+                When = {Args = "Do -h"},
+                Then =
+                {
+                    Output = @"Usage: dotnet testhost.dll Do <arg>
 
 Arguments:
-  arg" }
+  arg
+"
+                }
             });
         }
 
         [Fact]
         public void BasicHelp_List_Includes_StringCtorObjects()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(BasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = BasicHelp },
-                WhenArgs = "DoList -h",
-                Then = { Result = @"Usage: dotnet testhost.dll DoList [arguments]
+                When = {Args = "DoList -h"},
+                Then =
+                {
+                    Output = @"Usage: dotnet testhost.dll DoList <args>
 
 Arguments:
-  args" }
+  args
+"
+                }
             });
         }
 
         [Fact]
         public void DetailedHelp_Includes_StringCtorObjects()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(DetailedHelp).Verify(new Scenario
             {
-                Given = {AppSettings = DetailedHelp},
-                WhenArgs = "Do -h",
-                Then = {Result = @"Usage: dotnet testhost.dll Do [arguments]
+                When = {Args = "Do -h"},
+                Then =
+                {
+                    Output = @"Usage: dotnet testhost.dll Do <arg>
 
 Arguments:
 
-  arg  <FILENAME>" }
+  arg  <FILENAME>
+"
+                }
             });
         }
 
         [Fact]
         public void DetailedHelp_List_Includes_StringCtorObjects()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(DetailedHelp).Verify(new Scenario
             {
-                Given = { AppSettings = DetailedHelp },
-                WhenArgs = "DoList -h",
-                Then = { Result = @"Usage: dotnet testhost.dll DoList [arguments]
+                When = {Args = "DoList -h"},
+                Then =
+                {
+                    Output = @"Usage: dotnet testhost.dll DoList <args>
 
 Arguments:
 
-  args (Multiple)  <FILENAME>" }
+  args (Multiple)  <FILENAME>
+"
+                }
             });
         }
 
         [Fact]
         public void Exec_ConvertsStringToObject()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>().Verify(new Scenario
             {
-                WhenArgs = "DoList some-value another-value",
+                When = {Args = "DoList some-value another-value"},
                 Then =
                 {
-                    Outputs =
-                    {
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(
                         new List<StringCtorObject>
                         {
                             new StringCtorObject("some-value"),
                             new StringCtorObject("another-value")
-                        }
-                    }
+                        })
                 }
             });
         }
@@ -96,29 +107,29 @@ Arguments:
         [Fact]
         public void Exec_List_ConvertsStringToObject()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>().Verify(new Scenario
             {
-                WhenArgs = "Do some-value",
-                Then = { Outputs = { new StringCtorObject("some-value") } }
+                When = {Args = "Do some-value"},
+                Then =
+                {
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(
+                        new StringCtorObject("some-value"))
+                }
             });
         }
 
-        public class App
+        private class App
         {
-            private TestOutputs TestOutputs { get; set; }
-
             public void Do(StringCtorObject arg)
             {
-                TestOutputs.Capture(arg);
             }
 
             public void DoList(List<StringCtorObject> args)
             {
-                TestOutputs.Capture(args);
             }
         }
 
-        public class StringCtorObject
+        private class StringCtorObject
         {
             public string Filename { get; }
 

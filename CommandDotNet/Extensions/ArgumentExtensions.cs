@@ -17,7 +17,7 @@ namespace CommandDotNet.Extensions
         {
             if (argument == null) throw new ArgumentNullException(nameof(argument));
 
-            return argument.Name == Constants.VersionOptionName && argument.Parent.IsRootCommand();
+            return argument.Name == Constants.VersionOptionName && argument.Parent!.IsRootCommand();
         }
 
         public static bool IsObscured(this IArgument argument) =>
@@ -30,8 +30,8 @@ namespace CommandDotNet.Extensions
         /// </summary>
         public static void SwitchAct(
             this IArgument argument,
-            Action<Operand> operandAction,
-            Action<Option> optionAction)
+            Action<Operand>? operandAction = null,
+            Action<Option>? optionAction = null)
         {
             switch (argument)
             {
@@ -53,22 +53,39 @@ namespace CommandDotNet.Extensions
         /// execute <see cref="operandFunc"/> when <see cref="Operand"/>
         /// and <see cref="optionFunc"/> when <see cref="Option"/>
         /// </summary>
-        public static TResult SwitchFunc<TResult>(
+        public static TResult? SwitchFunc<TResult>(
+            this IArgument argument,
+            Func<Operand, TResult>? operandFunc = null,
+            Func<Option, TResult>? optionFunc = null)
+            where TResult : class
+        {
+            return argument switch
+            {
+                null => throw new ArgumentNullException(nameof(argument)),
+                Operand operand => operandFunc?.Invoke(operand),
+                Option option => optionFunc?.Invoke(option),
+                _ => throw new ArgumentException(BuildExMessage(argument))
+            };
+        }
+
+        /// <summary>
+        /// For the given <see cref="argument"/>,
+        /// execute <see cref="operandFunc"/> when <see cref="Operand"/>
+        /// and <see cref="optionFunc"/> when <see cref="Option"/>
+        /// </summary>
+        public static TResult SwitchFuncStruct<TResult>(
             this IArgument argument,
             Func<Operand, TResult> operandFunc,
             Func<Option, TResult> optionFunc)
+            where TResult : struct
         {
-            switch (argument)
+            return argument switch
             {
-                case null:
-                    throw new ArgumentNullException(nameof(argument));
-                case Operand operand:
-                    return operandFunc == null ? default : operandFunc(operand);
-                case Option option:
-                    return optionFunc == null ? default : optionFunc(option);
-                default:
-                    throw new ArgumentException(BuildExMessage(argument));
-            }
+                null => throw new ArgumentNullException(nameof(argument)),
+                Operand operand => operandFunc.Invoke(operand),
+                Option option => optionFunc.Invoke(option),
+                _ => throw new ArgumentException(BuildExMessage(argument))
+            };
         }
 
         private static string BuildExMessage(IArgument argument)

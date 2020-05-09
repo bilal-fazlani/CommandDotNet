@@ -16,65 +16,58 @@ namespace CommandDotNet.Builders
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
-        private static AppInfo s_appInfo;
+        private static AppInfo? sAppInfo;
 
-        internal static AppInfo Instance => s_appInfo ?? (s_appInfo = BuildAppInfo());
+        internal static AppInfo Instance => sAppInfo ??= BuildAppInfo();
 
-        private string _version;
+        private string? _version;
 
-        /// <summary>The entry assembly. Could be an exe or dll.</summary>
-        private Assembly _entryAssembly;
-
-        /// <summary>
-        /// The exe hosting the assembly.
-        /// Could be dotnet.exe, single executable containing zipped dll or the entry assembly.
-        /// </summary>
-        private ProcessModule _mainModule;
-
-        /// <summary>True the app is an executable, whether as a self-contained single executable or otherwise</summary>
-        private bool _isExe;
+        /// <summary>True if the application's filename ends with .exe</summary>
+        public bool IsExe { get; }
 
         /// <summary>True if published as a self-contained single executable</summary>
-        public bool IsSelfContainedExe { get; set; }
+        public bool IsSelfContainedExe { get; }
 
         /// <summary>True if run using the dotnet.exe</summary>
-        public bool IsRunViaDotNetExe { get; set; }
+        public bool IsRunViaDotNetExe { get; }
+
+        /// <summary>The entry assembly. Could be an exe or dll.</summary>
+        public Assembly EntryAssembly { get; }
 
         /// <summary>The file name used to execute the app</summary>
-        public string FilePath { get; private set; }
+        public string FilePath { get; }
 
         /// <summary>The file name used to execute the app</summary>
-        public string FileName { get; private set; }
+        public string FileName { get; }
 
-        public string Version => _version ?? (_version = GetVersion(_entryAssembly));
+        public string Version => _version ??= GetVersion(Instance.EntryAssembly);
 
-        private AppInfo()
+        public AppInfo(
+            bool isExe, bool isSelfContainedExe, bool isRunViaDotNetExe, 
+            Assembly entryAssembly,
+            string filePath, string fileName,
+            string? version = null)
         {
-        }
-
-        public AppInfo(string fileName, string version)
-        {
+            IsExe = isExe;
+            IsSelfContainedExe = isSelfContainedExe;
+            IsRunViaDotNetExe = isRunViaDotNetExe;
+            EntryAssembly = entryAssembly;
+            FilePath = filePath;
             FileName = fileName;
             _version = version;
         }
+
         public static AppInfo GetAppInfo(CommandContext commandContext)
         {
             var svcs = commandContext.AppConfig.Services;
-            var appInfo = svcs.Get<AppInfo>();
-            if (appInfo == null)
-            {
-                svcs.AddOrUpdate(appInfo = AppInfo.Instance);
-            }
+            var appInfo = svcs.GetOrAdd(() => Instance);
             return appInfo;
         }
 
         private static AppInfo BuildAppInfo()
         {
-            var appInfo = new AppInfo
-            {
-                _entryAssembly = Assembly.GetEntryAssembly()
-            };
-            if (appInfo._entryAssembly == null)
+            var entryAssembly = Assembly.GetEntryAssembly();
+            if (entryAssembly == null)
             {
                 throw new AppRunnerException(
                     "Unable to determine version because Assembly.GetEntryAssembly() is null. " +
@@ -84,9 +77,9 @@ namespace CommandDotNet.Builders
             }
 
             // this could be dotnet.exe or {app_name}.exe if published as single executable
-            appInfo._mainModule = Process.GetCurrentProcess().MainModule;
-            var mainModuleFilePath = appInfo._mainModule?.FileName;
-            var entryAssemblyFilePath = appInfo._entryAssembly?.Location;
+            var mainModule = Process.GetCurrentProcess().MainModule;
+            var mainModuleFilePath = mainModule?.FileName;
+            var entryAssemblyFilePath = entryAssembly?.Location;
             
             Log.Debug($"{nameof(mainModuleFilePath)}: {mainModuleFilePath}");
             Log.Debug($"{nameof(entryAssemblyFilePath)}: {entryAssemblyFilePath}");
@@ -101,35 +94,37 @@ namespace CommandDotNet.Builders
             // - .dll published as self-contained .exe files.
             // - windows, linux & mac
 
+            var isRunViaDotNetExe = false;
+            var isSelfContainedExe = false;
+            var isExe = false;
             if (mainModuleFileName != null)
             {
                 // osx uses 'dotnet' instead of 'dotnet.exe'
-                if (!(appInfo.IsRunViaDotNetExe = mainModuleFileName.Equals("dotnet.exe") || mainModuleFileName.Equals("dotnet")))
+                if (!(isRunViaDotNetExe = mainModuleFileName.Equals("dotnet.exe") || mainModuleFileName.Equals("dotnet")))
                 {
                     var entryAssemblyFileNameWithoutExt = Path.GetFileNameWithoutExtension(entryAssemblyFileName);
-                    appInfo.IsSelfContainedExe = appInfo._isExe = mainModuleFileName.EndsWith($"{entryAssemblyFileNameWithoutExt}.exe");
+                    isSelfContainedExe = isExe = mainModuleFileName.EndsWith($"{entryAssemblyFileNameWithoutExt}.exe");
                 }
             }
 
-            appInfo._isExe = appInfo._isExe || entryAssemblyFileName.EndsWith("exe");
+            isExe = isExe || entryAssemblyFileName.EndsWith("exe");
 
-            appInfo.FilePath = appInfo.IsSelfContainedExe
+            var filePath = isSelfContainedExe
                 ? mainModuleFilePath
                 : entryAssemblyFilePath;
 
-            appInfo.FileName = Path.GetFileName(appInfo.FilePath);
+            var fileName = Path.GetFileName(filePath);
 
-            Log.Debug($"  {nameof(FileName)}={appInfo.FileName} " +
-                      $"{nameof(IsRunViaDotNetExe)}={appInfo.IsRunViaDotNetExe} " +
-                      $"{nameof(IsSelfContainedExe)}={appInfo.IsSelfContainedExe} " +
-                      $"{nameof(FilePath)}={appInfo.FilePath}");
+            Log.Debug($"  {nameof(FileName)}={fileName} " +
+                      $"{nameof(IsRunViaDotNetExe)}={isRunViaDotNetExe} " +
+                      $"{nameof(IsSelfContainedExe)}={isSelfContainedExe} " +
+                      $"{nameof(FilePath)}={filePath}");
 
-            return appInfo;
+            return new AppInfo(isExe, isSelfContainedExe, isRunViaDotNetExe, entryAssembly!, filePath!, fileName);
         }
 
-        internal static string GetVersion(Assembly hostAssembly)
+        private static string GetVersion(Assembly hostAssembly)
         {
-            var filename = Path.GetFileName(hostAssembly.Location);
             var fvi = FileVersionInfo.GetVersionInfo(hostAssembly.Location);
             return fvi.ProductVersion;
         }

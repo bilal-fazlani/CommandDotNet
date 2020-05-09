@@ -1,11 +1,11 @@
-using CommandDotNet.Tests.ScenarioFramework;
-using CommandDotNet.TestTools;
+using CommandDotNet.Tests.Utils;
+using CommandDotNet.TestTools.Scenarios;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CommandDotNet.Tests.FeatureTests.Arguments
 {
-    public class AppsSettingsBoolModeTests : TestBase
+    public class AppsSettingsBoolModeTests
     {
         private static readonly AppSettings ImplicitBasicHelp = TestAppSettings.BasicHelp.Clone(a => a.BooleanMode = BooleanMode.Implicit);
         private static readonly AppSettings ImplicitDetailedHelp = TestAppSettings.DetailedHelp.Clone(a => a.BooleanMode = BooleanMode.Implicit);
@@ -13,26 +13,27 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
         private static readonly AppSettings ExplicitBasicHelp = TestAppSettings.BasicHelp.Clone(a => a.BooleanMode = BooleanMode.Explicit);
         private static readonly AppSettings ExplicitDetailedHelp = TestAppSettings.DetailedHelp.Clone(a => a.BooleanMode = BooleanMode.Explicit);
 
-        public AppsSettingsBoolModeTests(ITestOutputHelper output) : base(output)
+        public AppsSettingsBoolModeTests(ITestOutputHelper output)
         {
+            Ambient.Output = output;
         }
 
         [Fact]
         public void WhenExplicit_BasicHelp_DoesNotIncludeAllowedValues()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(ExplicitBasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = ExplicitBasicHelp },
-                WhenArgs = "Do -h",
+                When = {Args = "Do -h"},
                 Then =
                 {
-                    Result = @"Usage: dotnet testhost.dll Do [options] [arguments]
+                    Output = @"Usage: dotnet testhost.dll Do [options] <operand>
 
 Arguments:
   operand
 
 Options:
-  --option"
+  --option
+"
                 }
             });
         }
@@ -40,13 +41,12 @@ Options:
         [Fact]
         public void WhenExplicit_DetailedHelp_IncludesAllowedValues()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(ExplicitDetailedHelp).Verify(new Scenario
             {
-                Given = { AppSettings = ExplicitDetailedHelp },
-                WhenArgs = "Do -h",
+                When = {Args = "Do -h"},
                 Then =
                 {
-                    Result = @"Usage: dotnet testhost.dll Do [options] [arguments]
+                    Output = @"Usage: dotnet testhost.dll Do [options] <operand>
 
 Arguments:
 
@@ -56,7 +56,8 @@ Arguments:
 Options:
 
   --option  <BOOLEAN>
-  Allowed values: true, false"
+  Allowed values: true, false
+"
                 }
             });
         }
@@ -64,19 +65,19 @@ Options:
         [Fact]
         public void WhenImplicit_BasicHelp_DoesNotIncludeAllowedValues()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(ImplicitBasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = ImplicitBasicHelp },
-                WhenArgs = "Do -h",
+                When = {Args = "Do -h"},
                 Then =
                 {
-                    Result = @"Usage: dotnet testhost.dll Do [options] [arguments]
+                    Output = @"Usage: dotnet testhost.dll Do [options] <operand>
 
 Arguments:
   operand
 
 Options:
-  --option"
+  --option
+"
                 }
             });
         }
@@ -84,13 +85,12 @@ Options:
         [Fact]
         public void WhenImplicit_DetailedHelp_DoesNotIncludeAllowedValuesForOption()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(ImplicitDetailedHelp).Verify(new Scenario
             {
-                Given = { AppSettings = ImplicitDetailedHelp },
-                WhenArgs = "Do -h",
+                When = {Args = "Do -h"},
                 Then =
                 {
-                    Result = @"Usage: dotnet testhost.dll Do [options] [arguments]
+                    Output = @"Usage: dotnet testhost.dll Do [options] <operand>
 
 Arguments:
 
@@ -99,7 +99,8 @@ Arguments:
 
 Options:
 
-  --option"
+  --option
+"
                 }
             });
         }
@@ -107,38 +108,41 @@ Options:
         [Fact]
         public void WhenImplicit_Exec_OptionsIsFalseIfNotSpecified()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(ImplicitBasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = ImplicitBasicHelp },
                 // bool value 'true' is operand
-                WhenArgs = "Do true",
-                Then = { Outputs = { new Result(false, true) } }
+                When = {Args = "Do true"},
+                Then =
+                {
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(null, true)
+                }
             });
         }
 
         [Fact]
         public void WhenImplicit_Exec_OptionsIsTrueIfSpecified()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(ImplicitBasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = ImplicitBasicHelp },
                 // bool value 'false' is operand
-                WhenArgs = "Do --option false",
-                Then = { Outputs = { new Result(true, false) } }
+                When = {Args = "Do --option false"},
+                Then =
+                {
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(true, false)
+                }
             });
         }
 
         [Fact]
         public void WhenExplicit_Exec_OptionValueMustFollowTheArgument()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(ExplicitBasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = ExplicitBasicHelp },
-                WhenArgs = "Do2 --option 2",
+                When = {Args = "Do2 --option 2"},
                 Then =
                 {
-                    ExitCode = 2,
-                    ResultsContainsTexts = { "'2' is not a valid Boolean" }
+                    ExitCode = 1,
+                    OutputContainsTexts = { "Unrecognized value '2' for option: option" }
                 }
             });
         }
@@ -146,14 +150,13 @@ Options:
         [Fact]
         public void WhenExplicit_Exec_OptionValueIsRequired()
         {
-            Verify(new Scenario<App>
+            new AppRunner<App>(ExplicitBasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = ExplicitBasicHelp },
-                WhenArgs = "Do --option",
+                When = {Args = "Do --option"},
                 Then =
                 {
                     ExitCode = 1,
-                    ResultsContainsTexts = { "Missing value for option 'option'" }
+                    OutputContainsTexts = { "Missing value for option 'option'" }
                 }
             });
         }
@@ -161,49 +164,28 @@ Options:
         [Fact]
         public void WhenExplicit_Exec_SpecifiedOptionValueIsUsed()
         {
-            Verify(new Scenario<App>
+            var result = new AppRunner<App>(ExplicitBasicHelp).Verify(new Scenario
             {
-                Given = { AppSettings = ExplicitBasicHelp },
-                WhenArgs = "Do --option false true",
-                Then = { Outputs = { new Result(false, true) } }
+                When = {Args = "Do --option false true"},
+                Then =
+                {
+                    AssertContext = ctx => ctx.ParamValuesShouldBe(false, true)
+                }
             });
         }
 
-        public class App
+        private class App
         {
-            private TestOutputs TestOutputs { get; set; }
-
             public void Do(
                 [Option] bool option, 
                 [Operand] bool operand)
             {
-                TestOutputs.Capture(new Result(option, operand));
             }
 
             public void Do2(
                 [Option] bool option,
                 [Operand] int number)
             {
-                TestOutputs.Capture(new Result(option, number));
-            }
-        }
-
-        public class Result
-        {
-            public bool Option { get; set; }
-            public bool Operand { get; set; }
-            public int Number { get; set; }
-
-            public Result(bool option, bool operand)
-            {
-                Option = option;
-                Operand = operand;
-            }
-
-            public Result(bool option, int number)
-            {
-                Option = option;
-                Number = number;
             }
         }
     }

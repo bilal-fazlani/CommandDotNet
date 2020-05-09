@@ -8,24 +8,22 @@ namespace CommandDotNet.Builders.ArgumentDefaults
     internal static class SetArgumentDefaultsMiddleware
     {
         internal static AppRunner SetArgumentDefaultsFrom(AppRunner appRunner, 
-            Func<IArgument, ArgumentDefault>[] getDefaultValueCallbacks)
+            Func<IArgument, ArgumentDefault?>[] getDefaultValueCallbacks)
         {
+            if (getDefaultValueCallbacks == null)
+            {
+                throw new ArgumentNullException(nameof(getDefaultValueCallbacks));
+            }
+
             // run before help command so help will display the updated defaults
             return appRunner.Configure(c =>
             {
-                var config = c.Services.Get<Config>();
+                var config = c.Services.GetOrDefault<Config>();
                 if (config == null)
                 {
-                    config = new Config
-                    {
-                        GetDefaultValueCallbacks = getDefaultValueCallbacks
-                    };
-                    c.Services.Add(config);
-
                     // run before help so the default values can be displayed in the help text 
-                    c.UseMiddleware(SetDefaults,
-                        MiddlewareSteps.SetArgumentDefaults.Stage,
-                        MiddlewareSteps.SetArgumentDefaults.Order);
+                    c.UseMiddleware(SetDefaults, MiddlewareSteps.SetArgumentDefaults);
+                    c.Services.Add(config = new Config(getDefaultValueCallbacks));
                 }
                 else
                 {
@@ -37,12 +35,12 @@ namespace CommandDotNet.Builders.ArgumentDefaults
 
         private static Task<int> SetDefaults(CommandContext context, ExecutionDelegate next)
         {
-            if (context.ParseResult.ParseError != null)
+            if (context.ParseResult!.ParseError != null)
             {
                 return next(context);
             }
 
-            var config = context.AppConfig.Services.Get<Config>();
+            var config = context.AppConfig.Services.GetOrThrow<Config>();
             var command = context.ParseResult.TargetCommand;
             
             foreach (var argument in command.AllArguments(true))
@@ -61,7 +59,12 @@ namespace CommandDotNet.Builders.ArgumentDefaults
 
         private class Config
         {
-            public Func<IArgument, ArgumentDefault>[] GetDefaultValueCallbacks { get; set; }
+            public Func<IArgument, ArgumentDefault?>[] GetDefaultValueCallbacks { get; set; }
+            
+            public Config(Func<IArgument, ArgumentDefault?>[] getDefaultValueCallbacks)
+            {
+                GetDefaultValueCallbacks = getDefaultValueCallbacks ?? throw new ArgumentNullException(nameof(getDefaultValueCallbacks));
+            }
         }
     }
 }

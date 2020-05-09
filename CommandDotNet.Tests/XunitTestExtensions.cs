@@ -7,7 +7,7 @@ namespace CommandDotNet.Tests
     {
         public static IEnumerable<object[]> ToObjectArrays<T>(this IEnumerable<T> items)
         {
-            return items.Select(item => new object[] { item });
+            return items.Select(item => new object[] { item! });
         }
     }
 }

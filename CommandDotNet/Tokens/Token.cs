@@ -1,4 +1,5 @@
-﻿using CommandDotNet.Parsing;
+﻿using System;
+using CommandDotNet.Parsing;
 
 namespace CommandDotNet.Tokens
 {
@@ -17,21 +18,25 @@ namespace CommandDotNet.Tokens
         public TokenType TokenType { get; }
 
         /// <summary>When <see cref="TokenType"/> is <see cref="Tokens.TokenType.Option"/>, this will be populated.</summary>
-        public OptionTokenType OptionTokenType { get; }
+        public OptionTokenType? OptionTokenType { get; }
 
-        public string SourceName { get; internal set; }
+        public string? SourceName { get; internal set; }
 
-        public Token SourceToken { get; internal set; }
+        public Token? SourceToken { get; internal set; }
 
         public Token(
             string rawValue,
             string value, 
             TokenType tokenType, 
-            OptionTokenType optionTokenType = null)
+            OptionTokenType? optionTokenType = null)
         {
             RawValue = rawValue;
             Value = value;
             TokenType = tokenType;
+            if (tokenType == TokenType.Option && optionTokenType is null)
+            {
+                throw new ArgumentNullException($"{nameof(optionTokenType)} cannot be null when {nameof(tokenType)} is {TokenType.Option}");
+            }
             OptionTokenType = optionTokenType;
         }
 

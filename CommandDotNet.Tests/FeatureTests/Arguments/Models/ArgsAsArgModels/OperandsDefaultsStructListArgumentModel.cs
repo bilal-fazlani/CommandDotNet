@@ -5,6 +5,6 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments.Models.ArgsAsArgModels
     public class OperandsDefaultsStructListArgumentModel : IStructListArgumentModel
     {
         [Operand]
-        public List<int> StructListArg { get; set; } = new List<int> { 3, 4 };
+        public List<int>? StructListArg { get; set; } = new List<int> { 3, 4 };
     }
 }

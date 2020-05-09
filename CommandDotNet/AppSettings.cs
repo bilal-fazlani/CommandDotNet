@@ -1,6 +1,6 @@
-﻿using System;
-using CommandDotNet.Extensions;
+﻿using CommandDotNet.Extensions;
 using CommandDotNet.Help;
+using CommandDotNet.Parsing;
 using CommandDotNet.Tokens;
 using CommandDotNet.TypeDescriptors;
 
@@ -27,10 +27,16 @@ namespace CommandDotNet
         }
 
         /// <summary>
-        /// When false, unexpected arguments will result in a parse failure with help message.<br/>
-        /// When true, unexpected arguments will be ignored
+        /// When false, unexpected operands will generate a parse failure.<br/>
+        /// When true, unexpected arguments will be ignored and added to <see cref="ParseResult.RemainingOperands"/><br/>
         /// </summary>
         public bool IgnoreUnexpectedOperands { get; set; }
+
+        /// <summary>
+        /// The default <see cref="ArgumentSeparatorStrategy"/>.
+        /// This can be overridden for a <see cref="Command"/> using the <see cref="CommandAttribute"/>
+        /// </summary>
+        public ArgumentSeparatorStrategy DefaultArgumentSeparatorStrategy { get; set; } = ArgumentSeparatorStrategy.EndOfOptions;
 
         /// <summary>
         /// When arguments are not decorated with [Operand] or [Option]
@@ -38,15 +44,6 @@ namespace CommandDotNet
         /// Operand is the default.
         /// </summary>
         public ArgumentMode DefaultArgumentMode { get; set; } = ArgumentMode.Operand;
-
-        /// <summary>
-        /// When true, an <see cref="InvalidOperationException"/> will be thrown when operand order
-        /// cannot be determined due to missing <see cref="OperandAttribute"/> or <see cref="OrderByPositionInClassAttribute"/>.<br/>
-        /// Nested argument models must be attributed with <see cref="OrderByPositionInClassAttribute"/><br/>
-        /// NOTE: this will default to true in the next major version.
-        /// Set to true now or explicitly set to false to avoid the breaking change.
-        /// </summary>
-        public bool GuaranteeOperandOrderInArgumentModels { get; set; } = false;
 
         /// <summary>
         /// Set to true to prevent tokenizing arguments as <see cref="TokenType.Directive"/>,
@@ -64,34 +61,6 @@ namespace CommandDotNet
         /// from the commandline to the parameter & property types for the command methods.
         /// </summary>
         public ArgumentTypeDescriptors ArgumentTypeDescriptors { get; internal set; } = new ArgumentTypeDescriptors();
-
-        #region Obsolete Members
-
-        [Obsolete("Use DefaultArgumentMode instead")]
-        public ArgumentMode MethodArgumentMode
-        {
-            get => DefaultArgumentMode;
-            set => DefaultArgumentMode = value;
-        }
-
-        [Obsolete("Use IgnoreUnexpectedArguments instead")]
-        public bool ThrowOnUnexpectedArgument
-        {
-            get => !IgnoreUnexpectedOperands;
-            set => IgnoreUnexpectedOperands = !value;
-        }
-
-        [Obsolete("this is only used to display the arg separator in help. it does not make the separated arguments available for use.")]
-        public bool AllowArgumentSeparator { get; set; }
-
-        [Obsolete("Use Help.TextStyle")]
-        public HelpTextStyle HelpTextStyle
-        {
-            get => Help.TextStyle;
-            set => Help.TextStyle = value;
-        }
-
-        #endregion
 
         public override string ToString()
         {

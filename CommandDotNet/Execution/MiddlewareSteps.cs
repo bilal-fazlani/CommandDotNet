@@ -20,7 +20,7 @@
             /// <summary>
             /// Runs early in the <see cref="MiddlewareStages.PreTokenize"/> stage after <see cref="OnRunCompleted"/>
             /// </summary>
-            public static MiddlewareStep BeginScope { get; } = OnRunCompleted + 1000;
+            public static MiddlewareStep BeginScope { get; } = OnRunCompleted + 2000;
         }
 
         public static MiddlewareStep ParseDirective { get; } = Help.PrintHelpOnExit + 1000;
@@ -43,19 +43,15 @@
             /// Runs after <see cref="ParseInput"/> to suggest next possible argument or value
             /// </summary>
             public static MiddlewareStep Directive { get; } = ParseInput + 1000;
-            /// <summary>
-            /// Runs after <see cref="ParseInput"/> to suggest next possible argument or value
-            /// </summary>
-            public static MiddlewareStep RegisterWithDotNetSuggest { get; } = ParseInput + 1000;
+            public static MiddlewareStep RegisterWithDotNetSuggest { get; } = OnRunCompleted + 1000;
         }
-
 
         /// <summary>
         /// Runs after <see cref="ParseInput"/> to respond to parse errors
         /// </summary>
         public static MiddlewareStep TypoSuggest { get; } = AutoSuggest.Directive + 1000;
 
-        public static MiddlewareStep AssembleInvocationPipeline { get; } = ParseInput + 2000;
+        public static MiddlewareStep AssembleInvocationPipeline { get; } = TypoSuggest + 1000;
 
         /// <summary>Runs before <see cref="Help"/> to ensure default values are included in the help output</summary>
         public static MiddlewareStep Version { get; } = Help.CheckIfShouldShowHelp - 2000;

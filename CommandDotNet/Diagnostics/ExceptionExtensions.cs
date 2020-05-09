@@ -1,8 +1,9 @@
-﻿
-using System;
+﻿using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using CommandDotNet.Extensions;
 using CommandDotNet.Rendering;
 
 namespace CommandDotNet.Diagnostics
@@ -19,6 +20,47 @@ namespace CommandDotNet.Diagnostics
             return ex.Data.Contains(typeof(CommandContext))
                 ? (CommandContext)ex.Data[typeof(CommandContext)]
                 : ex.InnerException?.GetCommandContext();
+        }
+
+        public static void Print(this Exception ex, IConsole console, 
+            Indent indent = null, bool includeProperties = false, bool includeData = false)
+        {
+            void WriteLine(string? s) => console.Error.WriteLine(s);
+            
+            indent ??= new Indent();
+            WriteLine($"{indent}{ex.Message}");
+            
+            if (includeProperties)
+            {
+                var properties = ex.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+                if (properties.Any())
+                {
+                    WriteLine($"{indent}Properties:");
+                    indent = indent.Increment();
+                    foreach (var property in properties)
+                    {
+                        WriteLine($"{indent}{property.Name}:{property.GetValue(ex).ToIndentedString(indent)}");
+                    }
+
+                    foreach (DictionaryEntry entry in ex.Data)
+                    {
+                        WriteLine($"{indent}{entry.Key}:{entry.Value.ToIndentedString(indent)}");
+                    }
+
+                    indent = indent.Decrement();
+                }
+            }
+
+            if (includeData && ex.Data.Count > 0)
+            {
+                WriteLine($"{indent}Data:");
+                indent = indent.Increment();
+                foreach (DictionaryEntry entry in ex.Data)
+                {
+                    WriteLine($"{indent}{entry.Key}:{entry.Value.ToIndentedString(indent)}");
+                }
+                indent = indent.Decrement();
+            }
         }
 
         [Conditional("DEBUG")]

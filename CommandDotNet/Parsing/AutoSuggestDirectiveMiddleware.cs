@@ -1,23 +1,17 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using static System.Environment;
 using CommandDotNet.Builders;
+using CommandDotNet.Diagnostics;
 using CommandDotNet.Directives;
 using CommandDotNet.Execution;
 using CommandDotNet.Extensions;
-using CommandDotNet.Logging;
 
 namespace CommandDotNet.Parsing
 {
     internal static class AutoSuggestDirectiveMiddleware
     {
-        private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
-
         internal static AppRunner UseAutoSuggestDirective(this AppRunner appRunner)
         {
             return appRunner.Configure(c =>
@@ -42,13 +36,11 @@ namespace CommandDotNet.Parsing
                 : int.Parse(parts[1]);
 
             /* Scenarios:
-             * - no command/command/subcommand: show subcommands & options
-             * - parse error: show subcommands or options starting with same prefix as unrecognized argument
-             * - enum support: show allowed values
-             *   - update TypoSuggestions middleware to benefit
-             *
+             * - no command/command/subcommand: show root subcommands & options & first argument AllowedValues
+             * - parse error: show subcommands, options, next argument AllowedValues
+             *                starting with same prefix as unrecognized argument
+             * - no parse error: show subcommands, options, next argument AllowedValues
              */
-
 
             if (ctx.ParseResult!.ParseError == null)
             {
@@ -75,7 +67,8 @@ namespace CommandDotNet.Parsing
                     .OrderBy(a => a)
                     .Union(optionAliases)
                     .ForEach(n => ctx.Console.Out.WriteLine(n));
-                return Task.FromResult(0);
+                
+                return ExitCodes.Success;
             }
             
             switch (ctx.ParseResult.ParseError)
@@ -93,66 +86,43 @@ namespace CommandDotNet.Parsing
                     break;
             }
 
-            return Task.FromResult(1);
+            return ExitCodes.Success;
         }
 
         private static Task<int> RegisterWithDotNetSuggest(CommandContext ctx, ExecutionDelegate next)
         {
-            if (ctx.Tokens.TryGetDirective("suggest", out string? value))
+            if (ctx.Tokens.TryGetDirective("dotnet-suggest:register", out string? value))
             {
                 // not needed if we're already here
                 return next(ctx);
             }
 
+            var parts = value!.Split(':');
+
             // TODO: cache registration for support
+            // TODO: if dotnet-suggest is not installed.
+            //       "To enable tab suggestions, run dotnet tool install -g dotnet-suggest."
+            //       as suggested here: https://github.com/dotnet/command-line-api/issues/211
+            //       & link to this documentation: https://github.com/dotnet/command-line-api/wiki/dotnet-suggest
 
             var appInfo = AppInfo.GetAppInfo(ctx);
-
-            var stdOut = new StringBuilder();
-            var stdErr = new StringBuilder();
-
             var fileName = Path.GetFileNameWithoutExtension(appInfo.FilePath);
 
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet-suggest",
-                    Arguments = $"register --command-path \"{appInfo.FilePath}\" --suggestion-command \"{fileName}\"",
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true
-                }
-            };
-            process.OutputDataReceived += (sender, args) => stdOut.Append(args.Data);
-            process.ErrorDataReceived += (sender, args) => stdErr.Append(args.Data);
+            var action = parts.Last();
 
-            try
+            if (!ExeCmd.TryExecute(
+                "dotnet-suggest",
+                $"{action} --command-path \"{appInfo.FilePath}\" --suggestion-command \"{fileName}\"",
+                out var exeCmd, 
+                ctx.Console))
             {
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                // TODO: honor CancellationToken
-                process.WaitForExit();
-
-                var log = $"{process.StartInfo.FileName} exited with {process.ExitCode}{NewLine}" +
-                          $"out:{NewLine}{stdOut}{NewLine}error:{NewLine}{stdErr}";
-                if (process.ExitCode == 0)
-                {
-                    Log.Debug(log);
-                }
-                else
-                {
-                    Log.Error(log);
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error($"error during dotnet-suggest registration: {e}{NewLine}");
-                throw;
+                ctx.Console.Error.WriteLine($"Failed to {action} with dotnet-suggest");
+                ctx.Console.Error.WriteLine($"{exeCmd.FileName} exited with {exeCmd.ExitCode}");
+                exeCmd.Error?.Print(ctx.Console);
+                return ExitCodes.Error;
             }
 
-            return next(ctx);
+            return ExitCodes.Success;
         }
     }
 }

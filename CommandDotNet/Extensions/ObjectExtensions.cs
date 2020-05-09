@@ -56,14 +56,21 @@ namespace CommandDotNet.Extensions
                 .Select(p =>
                 {
                     var value = p.GetValue(item);
-                    var stringValue = value is IIndentableToString logToString
-                        ? logToString.ToString(indent.Increment())
-                        : value;
-                    return $"{indent}{p.Name}: {stringValue}";
+                    return $"{indent}{p.Name}: {value.ToIndentedString(indent)}";
                 })
                 .ToCsv(NewLine);
 
             return $"{item.GetType().Name}:{NewLine}{props}";
+        }
+
+        /// <summary>
+        /// <see cref="Indent"/> is only used if the object is <see cref="IIndentableToString"/>
+        /// </summary>
+        internal static string? ToIndentedString(this object? value, Indent indent)
+        {
+            return value is IIndentableToString logToString
+                ? logToString.ToString(indent.Increment())
+                : value?.ToString();
         }
 
         internal static object CloneWithPublicProperties(this object original, bool recurse = true)

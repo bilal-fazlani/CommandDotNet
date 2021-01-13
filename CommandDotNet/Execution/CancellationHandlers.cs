@@ -27,7 +27,11 @@ namespace CommandDotNet.Execution
         }
 
         private static Handler? GetHandler(this CommandContext ctx) => ctx.Services.GetOrDefault<Handler>();
-        private static void SetHandler(this CommandContext ctx, CancellationTokenSource src) => ctx.Services.Add(new Handler(src));
+        private static void SetHandler(this CommandContext ctx, CancellationTokenSource src)
+        {
+            ctx.Services.Add(new Handler(src));
+            ctx.Services.Add(src);
+        }
 
         static CancellationHandlers()
         {
@@ -58,7 +62,7 @@ namespace CommandDotNet.Execution
         }
 
         /// <summary>
-        /// Prefer <see cref="IConsole.TreatControlCAsInput"/> when possible.
+        /// Prefer <see cref="IConsoleReader.TreatControlCAsInput"/> when possible.
         /// Use this in cases where another component depends on the <see cref="Console.CancelKeyPress"/>
         /// event and CommandDotNet should ignore the event during this time. 
         /// </summary>

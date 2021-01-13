@@ -2,7 +2,7 @@
 
 namespace CommandDotNet
 {
-    public static class ConsoleExtensions
+    public static class ConsoleReadLineExtensions
     {
         public static void Write(this IConsole console, object? value = null)
         {

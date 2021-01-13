@@ -4,62 +4,16 @@
 // copied from System.CommandLine 
 
 using System;
+using System.Collections.Generic;
+using CommandDotNet.Execution;
+using CommandDotNet.Prompting;
 
 namespace CommandDotNet.Rendering
 {
     public interface IConsole :
-        IStandardOut,
-        IStandardError,
-        IStandardIn
+        IStandardOut, IStandardError, IStandardIn,
+        IConsoleColor, IConsoleBuffer, IConsoleWindow, IConsoleCursor
     {
-        /// <summary>
-        /// Read a key from the input
-        /// </summary>
-        /// <param name="intercept">When true, the key is not displayed in the output</param>
-        /// <returns></returns>
-        ConsoleKeyInfo ReadKey(bool intercept);
-
-        /// <summary>
-        /// Gets or Sets value determine whether Ctrl+C is treated as ordinary input.<br/>
-        /// When using System.Console, set this to true before <see cref="ReadKey"/> or
-        /// Ctrl+C is not captured and does not interrupt.
-        /// </summary>
-        bool TreatControlCAsInput { get; set; }
-    }
-
-    public interface IStandardOut
-    {
-        IStandardStreamWriter Out { get; }
-
-        bool IsOutputRedirected { get; }
-    }
-
-    public interface IStandardError
-    {
-        IStandardStreamWriter Error { get; }
-
-        bool IsErrorRedirected { get; }
-    }
-
-    public interface IStandardStream
-    {
-    }
-
-    public interface IStandardIn : IStandardStream
-    {
-        IStandardStreamReader In { get; }
-
-        bool IsInputRedirected { get; }
-    }
-
-    public interface IStandardStreamWriter : IStandardStream
-    {
-        void Write(string? value);
-    }
-
-    public interface IStandardStreamReader : IStandardStream
-    {
-        string? ReadLine();
-        string? ReadToEnd();
+        string Title { get; set; }
     }
 }

@@ -76,11 +76,8 @@ namespace CommandDotNet.Builders
             var entryAssembly = Assembly.GetEntryAssembly();
             if (entryAssembly == null)
             {
-                throw new AppRunnerException(
-                    "Unable to determine version because Assembly.GetEntryAssembly() is null. " +
-                    "This is a known issue when running unit tests in .net framework. https://tinyurl.com/y6rnjqsg" +
-                    "Set the version info in AppRunner.Configure(c => c.Services.Set(new AppInfo(...))) " +
-                    "to create a specific info for tests");
+                // THIS IS PURELY FOR DEBUG PURPOSED, DO NOT USE THIS CODE IN PRODUCTION!
+                return new AppInfo(false, false, true, entryAssembly!, "test", "testhost.dll");
             }
 
             // this could be dotnet.exe or {app_name}.exe if published as single executable

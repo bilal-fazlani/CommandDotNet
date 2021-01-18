@@ -81,10 +81,10 @@ namespace CommandDotNet.Tests.FeatureTests
         [InlineData("treework", "worktree,trek", "worktree,trek")]
         public void GivenWordsInWrongOrder(string typo, string options, string expectedSuggestions)
         {
-            options.Split(",")
+            options.Split(',')
                 .RankAndTrimSuggestions(typo, 5)
                 .Should()
-                .BeEquivalentSequenceTo(expectedSuggestions.Split(","));
+                .BeEquivalentSequenceTo(expectedSuggestions.Split(','));
         }
 
         [Theory]
@@ -93,7 +93,7 @@ namespace CommandDotNet.Tests.FeatureTests
         [InlineData("/t")]
         public void GivenWhitespace(string typo)
         {
-            "one,two".Split(",")
+            "one,two".Split(',')
                 .RankAndTrimSuggestions(typo, 5)
                 .Should()
                 .BeEmpty();

@@ -94,7 +94,7 @@ options:
     inputs:
     default:
 
-Tool version  = testhost.dll 1.1.1.1
+Tool version  = testhost.dll 16.2.0
 .Net version  = {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription.Trim()}
 OS version    = {System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim()}
 Machine       = {Environment.MachineName}

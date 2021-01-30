@@ -28,7 +28,7 @@ Directives:
 
 directives must be specified before any commands and arguments.
 
-Example: example_app [debug] [parse] [log:info] cancel-me".Replace("\r\n", "\n")
+Example: testhost.dll [debug] [parse] [log:info] cancel-me".Replace("\r\n", "\n")
                         }
                     }
                 });

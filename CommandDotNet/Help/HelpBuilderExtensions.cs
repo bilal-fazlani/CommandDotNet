@@ -5,7 +5,7 @@ namespace CommandDotNet.Help
 {
     internal static class HelpBuilderExtensions
     {
-        internal static string GetAppName(this AppHelpSettings appHelpSettings)
+        internal static string GetAppName(this Command command, AppHelpSettings appHelpSettings)
         {
             if (!appHelpSettings.UsageAppName.IsNullOrEmpty())
             {

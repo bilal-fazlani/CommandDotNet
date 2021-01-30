@@ -77,7 +77,7 @@ namespace CommandDotNet.TestTools
 
             IDisposable appInfo = config.AppInfoOverride is null
                 ? new DisposableAction(() => { })
-                : AppInfo.ResolveInstance(() => config.AppInfoOverride);
+                : AppInfo.OverrideInstance(config.AppInfoOverride);
 
             IDisposable logProvider = config.PrintCommandDotNetLogs
                 ? TestToolsLogProvider.InitLogProvider(logLine)

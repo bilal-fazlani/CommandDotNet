@@ -19,23 +19,23 @@ namespace CommandDotNet.Builders
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private static AppInfo? sAppInfo;
-        private static Func<AppInfo>? sAppInfoResolver;
 
         /// <summary>
         /// The instance of AppInfo used by all commands.
-        /// Use <see cref="ResolveInstance"/> to override this for consistent tests.
+        /// Use <see cref="OverrideInstance"/> to override this for consistent tests.
         /// </summary>
-        public static AppInfo Instance => sAppInfoResolver?.Invoke() ?? (sAppInfo ??= BuildAppInfo());
+        public static AppInfo Instance => sAppInfo ??= BuildAppInfo();
 
         /// <summary>
         /// Use to override the AppInfo logic for consistent usage info in tests
         /// or override using TestConfig.AppInfoOverride
         /// https://commanddotnet.bilal-fazlani.com/testtools/harness/test-config/
         /// </summary>
-        public static IDisposable ResolveInstance(Func<AppInfo> appInfoResolver)
+        public static IDisposable OverrideInstance(AppInfo appInfo)
         {
-            sAppInfoResolver = appInfoResolver;
-            return new DisposableAction(() => sAppInfoResolver = null);
+            var original = sAppInfo;
+            sAppInfo = appInfo;
+            return new DisposableAction(() => sAppInfo = original);
         }
 
         private string? _version;

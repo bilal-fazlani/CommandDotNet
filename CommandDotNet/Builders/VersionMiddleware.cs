@@ -45,16 +45,16 @@ namespace CommandDotNet.Builders
         {
             if (commandContext.RootCommand!.HasInputValues(VersionOptionName))
             {
-                Print(commandContext.Console);
+                Print(commandContext, commandContext.Console);
                 return ExitCodes.Success;
             }
 
             return next(commandContext);
         }
 
-        private static void Print(IConsole console)
+        private static void Print(CommandContext commandContext, IConsole console)
         {
-            var appInfo = AppInfo.Instance;
+            var appInfo = AppInfo.GetAppInfo(commandContext);
 
             console.Out.WriteLine(appInfo.FileName);
             console.Out.WriteLine(appInfo.Version);

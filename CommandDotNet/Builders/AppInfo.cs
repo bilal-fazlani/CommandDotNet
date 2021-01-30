@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using CommandDotNet.Extensions;
 using CommandDotNet.Logging;
 
 namespace CommandDotNet.Builders
@@ -14,27 +13,13 @@ namespace CommandDotNet.Builders
     /// For unit tests, use `AppRunner.Configure(c =&gt; c.Services.Set(new AppInfo(...)))`
     /// to set to specific version
     /// </summary>
-    public class AppInfo : ICloneable
+    public class AppInfo
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private static AppInfo? sAppInfo;
 
-        /// <summary>
-        /// The instance of AppInfo used by all commands.
-        /// Use <see cref="OverrideInstance"/> to override this for consistent tests.
-        /// </summary>
-        public static AppInfo Instance => sAppInfo ??= BuildAppInfo();
-
-        /// <summary>
-        /// Use to override the AppInfo logic for consistent usage info in tests
-        /// </summary>
-        public static IDisposable OverrideInstance(AppInfo appInfo)
-        {
-            var original = sAppInfo;
-            sAppInfo = appInfo;
-            return new DisposableAction(() => sAppInfo = original);
-        }
+        internal static AppInfo Instance => sAppInfo ??= BuildAppInfo();
 
         private string? _version;
 
@@ -73,6 +58,19 @@ namespace CommandDotNet.Builders
             _version = version;
         }
 
+        public static AppInfo GetAppInfo()
+        {
+            return Instance;
+        }
+
+        [Obsolete("Use GetAppInfo() without parameters. This method is will be made internal for tests only.")]
+        public static AppInfo GetAppInfo(CommandContext commandContext)
+        {
+            var svcs = commandContext.AppConfig.Services;
+            var appInfo = svcs.GetOrAdd(() => Instance);
+            return appInfo;
+        }
+
         private static AppInfo BuildAppInfo()
         {
             var entryAssembly = Assembly.GetEntryAssembly();
@@ -80,8 +78,9 @@ namespace CommandDotNet.Builders
             {
                 throw new AppRunnerException(
                     "Unable to determine version because Assembly.GetEntryAssembly() is null. " +
-                    "This is a known issue when running unit tests in .net framework. https://tinyurl.com/y6rnjqsg \n" +
-                    "Set the version info in AppInfo.OverrideInstance(new AppInfo(...))\n");
+                    "This is a known issue when running unit tests in .net framework. https://tinyurl.com/y6rnjqsg" +
+                    "Set the version info in AppRunner.Configure(c => c.Services.Set(new AppInfo(...))) " +
+                    "to create a specific info for tests");
             }
 
             // this could be dotnet.exe or {app_name}.exe if published as single executable
@@ -135,11 +134,6 @@ namespace CommandDotNet.Builders
         {
             var fvi = FileVersionInfo.GetVersionInfo(hostAssembly.Location);
             return fvi.ProductVersion;
-        }
-
-        public object Clone()
-        {
-            return new AppInfo(IsExe, IsSelfContainedExe, IsRunViaDotNetExe, EntryAssembly, FilePath, FileName, _version);
         }
     }
 }

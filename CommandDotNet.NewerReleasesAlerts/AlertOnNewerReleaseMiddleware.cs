@@ -80,7 +80,7 @@ namespace CommandDotNet.NewerReleasesAlerts
             {
                 SemVersion? latestReleaseVersion = null;
 
-                var shouldAlert = TryGetCurrentVersion(out var currentVersion)
+                var shouldAlert = TryGetCurrentVersion(context, out var currentVersion)
                                   && TryGetLatestReleaseVersion(context, config, out latestReleaseVersion)
                                   && currentVersion < latestReleaseVersion;
                 if (shouldAlert)
@@ -99,9 +99,10 @@ namespace CommandDotNet.NewerReleasesAlerts
             return next(context);
         }
 
-        private static bool TryGetCurrentVersion(out SemVersion semVersion)
+        private static bool TryGetCurrentVersion(CommandContext context, out SemVersion semVersion)
         {
-            return SemVersion.TryParse(AppInfo.Instance.Version, out semVersion);
+            var appInfo = AppInfo.GetAppInfo(context);
+            return SemVersion.TryParse(appInfo.Version, out semVersion);
 
         }
 

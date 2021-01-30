@@ -96,7 +96,7 @@ namespace CommandDotNet.Example
 
         private void PrintSessionInit()
         {
-            var appInfo = AppInfo.Instance;
+            var appInfo = AppInfo.GetAppInfo(_context);
             var console = _context.Console;
             console.WriteLine($"{_appName} {appInfo.Version}");
             console.WriteLine("Type 'help' to see interactive options");

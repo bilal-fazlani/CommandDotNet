@@ -44,7 +44,7 @@ namespace CommandDotNet.Tests.FeatureTests
                         Then =
                         {
                             ExitCode = 5, // method should have been called
-                            OutputContainsTexts = {$"Attach your debugger to process {processId} ({Process.GetCurrentProcess().ProcessName})."}
+                            OutputContainsTexts = {$"Attach your debugger to process {processId} (dotnet)."}
                         }
                     });
         }

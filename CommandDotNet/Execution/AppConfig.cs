@@ -38,7 +38,7 @@ namespace CommandDotNet.Execution
 
         /// <summary>
         /// The application <see cref="IHelpProvider"/>.
-        /// Configure using <see cref="AppSettings.Help"/> or
+        /// Configure using <see cref="CommandDotNet.AppSettings.Help"/> or
         /// provide a customer provider using <see cref="AppRunner.Configure"/>
         /// </summary>
         public IHelpProvider HelpProvider { get; }

@@ -23,7 +23,7 @@ namespace CommandDotNet.Builders
 
         /// <summary>
         /// The instance of AppInfo used by all commands.
-        /// Use <see cref="SetResolver"/> to override this for consistent tests.
+        /// Use <see cref="ResolveInstance"/> to override this for consistent tests.
         /// </summary>
         public static AppInfo Instance => sAppInfoResolver?.Invoke() ?? (sAppInfo ??= BuildAppInfo());
 
@@ -32,7 +32,7 @@ namespace CommandDotNet.Builders
         /// or override using TestConfig.AppInfoOverride
         /// https://commanddotnet.bilal-fazlani.com/testtools/harness/test-config/
         /// </summary>
-        public static IDisposable SetResolver(Func<AppInfo> appInfoResolver)
+        public static IDisposable ResolveInstance(Func<AppInfo> appInfoResolver)
         {
             sAppInfoResolver = appInfoResolver;
             return new DisposableAction(() => sAppInfoResolver = null);

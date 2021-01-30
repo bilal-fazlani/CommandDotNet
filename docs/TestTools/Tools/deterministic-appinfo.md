@@ -73,5 +73,5 @@ FOr test runners frameworks that can execute code before all tests (NUnit), use 
 
 FOr test runners frameworks that can *not* execute code before all tests (XUnit), use `TestConfig.AppInfoOverride` set the AppInfo for all tests.
 
-see [IDefaultTestConfig](../Harness/test-config.md#idefaulttestconfig) and [tips for xunit](../Harness/tips-test-runners.md) for more details.
+see [IDefaultTestConfig](test-config.md#idefaulttestconfig) and [tips for xunit](tips-test-runners.md) for more details.
 

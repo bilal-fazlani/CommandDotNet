@@ -12,7 +12,7 @@ public void Checkout_NewBranch_WithoutBranchFlag_Fails()
         .RunInMem("checkout lala");
 
     result.ExitCode.Should().Be(1);
-    result.Console.Error.Should().Be("error: pathspec 'lala' did not match any file(s) known to git" );
+    result.OutputShouldBe("error: pathspec 'lala' did not match any file(s) known to git" );
 }
 ```
 
@@ -44,22 +44,11 @@ Log output based on `TestConfig.OnSuccess.Print` or `TestConfig.OnError.Print` s
 
 ### Return AppRunnerResult
 
-```c#
+The result will contain 
 
-public class AppRunnerResult
-{
-    internal AppRunner Runner { get; }
-    internal TestConfig Config { get; }
+* ExitCode
+* TestConsole
+* TestCaptures
+* CommandContext
 
-    public int ExitCode { get; }
-
-    public TestConsole Console { get; }
-
-    /// <summary>The <see cref="CommandContext"/> used during the run</summary>
-    public CommandContext CommandContext { get; }
-
-    /// <summary>The exception that escaped from <see cref="AppRunner.Run"/><br/></summary>
-    public Exception? EscapedException { get; }
-}
-
-```
+## TestCaptures

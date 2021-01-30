@@ -21,8 +21,6 @@ nuget package: [CommandDotNet.TestTools](https://www.nuget.org/packages/CommandD
 
 One of the perks of using this framework is that commands are just methods and methods are easily unit tested. Most of your tests can be unit tests, as is best-practice.
 
-However, you may find occassions where you'd like to write end-to-end tests to confirm your app is configured correctly and will work as expected from the console. 
-
 These tools enable you to provide end-to-end testing as if running the app in a console.
 
 !!! Note
@@ -45,7 +43,7 @@ The tool provides two extension methods to execute an AppRunner in memory and co
                 .RunInMem("List aaa bbb", pipedInput: new[] { "ccc", "ddd" });
 
             result.ExitCode.Should().Be(0);
-            result.Console.Out.Should().Be(@"aaa
+            result.OutputShouldBe(@"aaa
     bbb
     ccc
     ddd
@@ -105,10 +103,7 @@ The tool provides two extension methods to execute an AppRunner in memory and co
 
 ## Testing your application
 
-### Using the same configuration
-
-When testing an application, use the same method to generate and configure the AppRunner for the console and tests. In this example, the `Program.GetAppRunner()` method is introduced and made public 
-so tests get an AppRunner configured exactly as it will be when run from the console. If you have additional configuration, such as an IoC container, be sure it's included in this method.
+When testing an application, use the same method to generate and configure the AppRunner for the console and tests. In this example, the `GetAppRunner()` method is made public so tests can verify the exact config used in the application.
 
 ```c#
 public class Program
@@ -135,6 +130,19 @@ public class Program
 public class ProgramTests
 {
     [Test]
+    public void Checkout_NewBranch_WithoutBranchFlag_Fails()
+    {
+        Program.GetAppRunner()
+            .Verify(new Scenario
+            {
+                When = { Args = "checkout lala" },
+                Then = { 
+                    Output = "error: pathspec 'lala' did not match any file(s) known to git" 
+                }
+            });
+    }
+
+    [Test]
     public void Checkout_NewBranch_BranchFlag_Succeeds()
     {
         Program.GetAppRunner()
@@ -148,19 +156,6 @@ public class ProgramTests
     }
 }
 ```
-
-### AppInfo and AppName generation in tests
-
-CommandDotNet uses `Assembly.GetEntryAssembly()` and `Process.GetCurrentProcess().MainModule` to generate the AppInfo and AppName used in the auto-generated help.
-
-While ideal when executing the app, this is not deterministic when executing from a test runner.
-
-For example, 
-
-* when run using `dotnet test`, the AppName will be "dotnet testhost.dll"
-* when run using the Resharper test runner, the AppName will be "ReSharperTestRunner64.exe"
-
-See [Deterministic AppName for tests](Tools/deterministic-appinfo.md) for tips to work around this.
 
 ## Included test tools
 

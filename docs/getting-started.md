@@ -171,7 +171,7 @@ Answer: 60
         {
             var result = new AppRunner<Calculator>().RunInMem("Add 40 20");
             result.ExitCode.Should().Be(0);
-            result.Console.Out.Should().Be(@"60");
+            result.OutputShouldBe(@"60");
         }
     }
     ```

@@ -1,13 +1,5 @@
 # CommandDotNet
 
-## 4.1.5
-
-Fixes [bug #331](https://github.com/bilal-fazlani/commanddotnet/issues/331) on .Net Framework when capturing CommandContext in Exception.Data.  Thanks to `@arendvw` for reporting this.
-
-## 4.1.4
-
-Fixes [bug #326](https://github.com/bilal-fazlani/commanddotnet/issues/326) where password from default values could be displayed in plain text in help. Thanks to `@giuliov` for reporting this. 
-
 ## 4.1.3
 
 Fixes a bug where the TypoSuggest middleware threw an exception when an argument value was an empty string.

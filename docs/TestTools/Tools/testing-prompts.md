@@ -19,7 +19,7 @@ Notice `Respond.WithText` in the examples below.
                 .RunInMem("TellAJoke", onPrompt: Respond.WithText("who's there"));
 
             result.ExitCode.Should().Be(0);
-            result.Console.Out.Should().Be(@"knock knock: who's there
+            result.OutputShouldBe(@"knock knock: who's there
     who's there
     ");
         }

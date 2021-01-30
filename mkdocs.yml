@@ -51,7 +51,6 @@ nav:
           - TestTools/Tools/testing-middleware.md
           - TestTools/Tools/testing-piped-input.md
           - TestTools/Tools/testing-prompts.md
-          - TestTools/Tools/overriding-appinfo.md
       - Other Features:
         - OtherFeatures/default-middleware.md
         - Ctrl+C and<br/>CancellationToken: OtherFeatures/cancellation.md

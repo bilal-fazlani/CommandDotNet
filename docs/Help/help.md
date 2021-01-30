@@ -97,11 +97,11 @@ When `Adaptive`, if the file name ends with ".exe", then uses `Executable` else 
 
 ### UsageAppName
 
-When specified, this value will be used {application} in `Usage: {application}`.  `UsageAppNameStyle` will be ignored.
+When specified, this value will be used and `UsageAppNameStyle` will be ignored.
 
 ### Template variables
 
-The CommandAttribute supports the use of template variables to be used in help.  `%AppName%` will be replaced with application name as determined above.
+The CommandAttribute supports the use of template variables to be used in help.
 
 See docs for [Commands > Template variables](../Commands/commands.md#template-variables) for details.
 

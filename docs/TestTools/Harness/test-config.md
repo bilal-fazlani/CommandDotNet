@@ -2,86 +2,59 @@
 
 ## TestConfig
 
-The `TestConfig` is used to configure logging output during a test run and AppInfo used in assertions.
+The `TestConfig` is used to control what is logged to output during a test run.
 
-The `TestConfig.Default` will log to the console buffer, both Out and Error, on error.
+The default value will output the console buffer, both Out and Error, on error.
 
 Set TestConfig.Default to provide a different default.  If you're using a test framework that doesn't provide for a way to set the default before tests are run, looking at you XUnit, then implement an `IDefaultTestConfig` as [shown below](#idefaulttestconfig) 
-
-### AppInfoOverride
-
-Use `TestConfig.AppInfoOverride` to generate a consistent app name for test assertions, regardless of the test runner. 
-
-The AppName is often 
-
-When running tests using `dotnet test`, the app name will be `Usage: dotnet testhost.dll `...
-When running tests using Resharper, the app name will be `Usage: ReSharperTestRunner64.exe `...
-
-You may want it to be the appname that will appear when the user runs the tests, in 
-
-### The TestConfig class
 
 ```c#
 public class TestConfig
 {
-        /// <summary>
-        /// Default scans loaded assemblies for <see cref="IDefaultTestConfig"/>
-        /// and stores the config with the lowest <see cref="Priority"/>
-        /// </summary>
-        public static TestConfig Default
-        {
-            get => defaultTestConfig ??= TestConfigFactory.GetDefaultFromSubClass() ?? new TestConfig{Source = "TestConfig.Default"};
-            set => defaultTestConfig = value ?? throw new ArgumentNullException(nameof(value));
-        }
+    /// <summary>
+    /// Default scans loaded assemblies for <see cref="IDefaultTestConfig"/>
+    /// and stores the config with the lowest <see cref="Priority"/>
+    /// </summary>
+    public static TestConfig Default { get; set; }
 
-        /// <summary>Nothing will be printed and errors will be captured</summary>
-        public static TestConfig Silent { get; set; } = new TestConfig
-        {
-            OnSuccess = new OnSuccessConfig(), 
-            OnError = new OnErrorConfig(),
-            Source = "TestConfig.Silent"
-        };
+    /// <summary>Nothing will be printed and errors will be captured</summary>
+    public static TestConfig Silent { get; set; }
 
-        /// <summary>
-        /// Configuration to be used when no exception has escaped <see cref="AppRunner.Run"/><br/>
-        /// Default: prints nothing
-        /// </summary>
-        public OnSuccessConfig OnSuccess { get; set; } = new OnSuccessConfig();
+    /// <summary>
+    /// Configuration to be used when no exception has 
+    /// escaped <see cref="AppRunner.Run"/><br/>
+    /// Default: prints nothing
+    /// </summary>
+    public OnSuccessConfig OnSuccess { get; set; }
 
-        /// <summary>
-        /// Configuration to be used when no exception has escaped <see cref="AppRunner.Run"/><br/>
-        /// Default: prints <see cref="PrintConfig.ConsoleOutput"/>
-        /// </summary>
-        public OnErrorConfig OnError { get; set; } = new OnErrorConfig
-        {
-            Print = { ConsoleOutput = true }
-        };
+    /// <summary>
+    /// Configuration to be used when no exception has 
+    /// escaped <see cref="AppRunner.Run"/><br/>
+    /// Default: prints <see cref="PrintConfig.ConsoleOutput"/>
+    /// </summary>
+    public OnErrorConfig OnError { get; set; }
 
-        /// <summary>When true, CommandDotNet logs will output to logLine</summary>
-        public bool PrintCommandDotNetLogs { get; set; }
+    /// <summary>When true, CommandDotNet logs will output to logLine</summary>
+    public bool PrintCommandDotNetLogs { get; set; }
 
-        /// <summary>
-        /// To identify the <see cref="TestConfig"/> in case the expected config was not used.<br/>
-        /// Will be auto-populated when created from <seealso cref="IDefaultTestConfig"/>
-        /// </summary>
-        public string? Source { get; set; }
+    /// <summary>
+    /// To identify the <see cref="TestConfig"/> in case 
+    /// the expected config was not used.<br/>
+    /// Will be auto-populated when created from 
+    /// <seealso cref="IDefaultTestConfig"/>
+    /// </summary>
+    public string Source { get; set; }
 
-        /// <summary>
-        /// When multiple <see cref="IDefaultTestConfig"/>s are found,
-        /// the <see cref="TestConfig"/> with the lowest priority will be used.<br/>
-        /// This property is only needed when providing the default via <see cref="IDefaultTestConfig"/><br/>
-        /// Set <see cref="Default"/> directly to avoid use of this property.<br/>
-        /// Create and .gitignore a <see cref="IDefaultTestConfig"/> with short.MinValue
-        /// for verbose local logging and quite CI logging.<br/>
-        /// </summary>
-        public short? Priority { get; set; }
-
-        /// <summary>
-        /// Used to override the <see cref="AppInfo"/> used by tests.
-        /// This will ensure consistent results when verifying the Usage
-        /// section of the output.
-        /// </summary>
-        public AppInfo? AppInfoOverride { get; set; }
+    /// <summary>
+    /// When multiple <see cref="IDefaultTestConfig"/>s are found,
+    /// the <see cref="TestConfig"/> with the lowest priority will be used.<br/>
+    /// This property is only needed when providing the default via 
+    /// <see cref="IDefaultTestConfig"/><br/>
+    /// Set <see cref="Default"/> directly to avoid use of this property.<br/>
+    /// Create and .gitignore a <see cref="IDefaultTestConfig"/> 
+    /// with short.MinValue for verbose local logging and quite CI logging.<br/>
+    /// </summary>
+    public short Priority { get; set; } = short.MaxValue;
     
     /// <summary>
     /// Returns a clone of the TestConfig after applying 

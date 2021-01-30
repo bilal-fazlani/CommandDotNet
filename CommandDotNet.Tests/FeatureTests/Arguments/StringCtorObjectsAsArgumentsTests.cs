@@ -24,7 +24,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
                 When = {Args = "Do -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll Do <ctorArg> <parseArg>
+                    Output = @"Usage: dotnet testhost.dll Do <ctorArg> <parseArg>
 
 Arguments:
   ctorArg
@@ -42,7 +42,7 @@ Arguments:
                 When = {Args = "DoList -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll DoList [options]
+                    Output = @"Usage: dotnet testhost.dll DoList [options]
 
 Options:
   -c | --ctorArgs
@@ -60,7 +60,7 @@ Options:
                 When = {Args = "Do -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll Do <ctorArg> <parseArg>
+                    Output = @"Usage: dotnet testhost.dll Do <ctorArg> <parseArg>
 
 Arguments:
 
@@ -80,7 +80,7 @@ Arguments:
                 When = {Args = "DoList -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll DoList [options]
+                    Output = @"Usage: dotnet testhost.dll DoList [options]
 
 Options:
 

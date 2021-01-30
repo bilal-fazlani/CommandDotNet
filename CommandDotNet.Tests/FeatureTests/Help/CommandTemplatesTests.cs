@@ -7,7 +7,7 @@ namespace CommandDotNet.Tests.FeatureTests.Help
 {
     public class CommandTemplatesTests
     {
-        private const string AppName = "testhost.dll";
+        private const string AppName = "dotnet testhost.dll";
 
         public CommandTemplatesTests(ITestOutputHelper output)
         {

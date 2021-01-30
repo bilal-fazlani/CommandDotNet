@@ -1,4 +1,3 @@
-using CommandDotNet.Builders;
 using CommandDotNet.TestTools;
 
 namespace CommandDotNet.Example.Tests
@@ -9,11 +8,7 @@ namespace CommandDotNet.Example.Tests
         {
             //PrintCommandDotNetLogs = true,
             OnSuccess = {Print = {ConsoleOutput = true}},
-            OnError = {Print = {ConsoleOutput = true, CommandContext = true}},
-            AppInfoOverride = new AppInfo(
-                false, false, false,
-                typeof(Program).Assembly,
-                "testhost.dll", "testhost.dll", "1.1.1.1")
+            OnError = {Print = {ConsoleOutput = true, CommandContext = true}}
         };
     }
 }

@@ -26,7 +26,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
                 When = {Args = "ArgsDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ArgsDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll ArgsDefaults [options]
 
 Options:
   --BoolArg
@@ -52,7 +52,7 @@ Options:
                 When = {Args = "ArgsDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ArgsDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll ArgsDefaults [options]
 
 Options:
 

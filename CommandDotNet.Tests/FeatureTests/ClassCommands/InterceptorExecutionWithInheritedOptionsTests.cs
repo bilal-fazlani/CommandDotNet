@@ -24,7 +24,7 @@ namespace CommandDotNet.Tests.FeatureTests.ClassCommands
                     When = {Args = "-h"},
                     Then =
                     {
-                        Output = @"Usage: testhost.dll [command] [options]
+                        Output = @"Usage: dotnet testhost.dll [command] [options]
 
 Options:
 
@@ -35,7 +35,7 @@ Commands:
   ChildApp
   Do
 
-Use ""testhost.dll [command] --help"" for more information about a command.
+Use ""dotnet testhost.dll [command] --help"" for more information about a command.
 "
                     }
                 });
@@ -67,7 +67,7 @@ Use ""testhost.dll [command] --help"" for more information about a command.
                     When = {Args = "Do -h"},
                     Then =
                     {
-                        Output = @"Usage: testhost.dll Do [options] <arg1>
+                        Output = @"Usage: dotnet testhost.dll Do [options] <arg1>
 
 Arguments:
 
@@ -113,7 +113,7 @@ Options:
                     When = {Args = "ChildApp Do -h"},
                     Then =
                     {
-                        Output = @"Usage: testhost.dll ChildApp Do [options]
+                        Output = @"Usage: dotnet testhost.dll ChildApp Do [options]
 
 Options:
 
@@ -153,13 +153,13 @@ Options:
                     When = {Args = "ChildApp -h"},
                     Then =
                     {
-                        Output = @"Usage: testhost.dll ChildApp [command]
+                        Output = @"Usage: dotnet testhost.dll ChildApp [command]
 
 Commands:
 
   Do
 
-Use ""testhost.dll ChildApp [command] --help"" for more information about a command.
+Use ""dotnet testhost.dll ChildApp [command] --help"" for more information about a command.
 "
                     }
                 });

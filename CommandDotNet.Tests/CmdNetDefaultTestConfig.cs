@@ -9,7 +9,7 @@ namespace CommandDotNet.Tests
         {
             OnError = {Print = {ConsoleOutput = true, CommandContext = true}},
             AppInfoOverride = new AppInfo(
-                false, false, false, 
+                false, false, true, 
                 typeof(CmdNetDefaultTestConfig).Assembly, 
                 "testhost.dll", "testhost.dll", "1.1.1.1")
         };

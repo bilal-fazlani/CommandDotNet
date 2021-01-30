@@ -30,7 +30,7 @@ Commands:
   somecommand  cmd description
   SubApp       sub-app description
 
-Use ""testhost.dll [command] --help"" for more information about a command.
+Use ""dotnet testhost.dll [command] --help"" for more information about a command.
 
 app extended help
 "
@@ -55,7 +55,7 @@ Commands:
   somecommand  cmd description
   SubApp       sub-app description
 
-Use ""testhost.dll [command] --help"" for more information about a command.
+Use ""dotnet testhost.dll [command] --help"" for more information about a command.
 
 app extended help
 "
@@ -73,12 +73,12 @@ app extended help
                 {
                     Output = @"sub-app description
 
-Usage: testhost.dll SubApp [command]
+Usage: dotnet testhost.dll SubApp [command]
 
 Commands:
   subdo
 
-Use ""testhost.dll SubApp [command] --help"" for more information about a command.
+Use ""dotnet testhost.dll SubApp [command] --help"" for more information about a command.
 
 sub-app extended help
 "
@@ -96,13 +96,13 @@ sub-app extended help
                 {
                     Output = @"sub-app description
 
-Usage: testhost.dll SubApp [command]
+Usage: dotnet testhost.dll SubApp [command]
 
 Commands:
 
   subdo
 
-Use ""testhost.dll SubApp [command] --help"" for more information about a command.
+Use ""dotnet testhost.dll SubApp [command] --help"" for more information about a command.
 
 sub-app extended help
 "
@@ -120,7 +120,7 @@ sub-app extended help
                 {
                     Output = @"cmd description
 
-Usage: testhost.dll somecommand <value>
+Usage: dotnet testhost.dll somecommand <value>
 
 Arguments:
   value
@@ -141,7 +141,7 @@ cmd extended help
                 {
                     Output = @"cmd description
 
-Usage: testhost.dll somecommand <value>
+Usage: dotnet testhost.dll somecommand <value>
 
 Arguments:
 

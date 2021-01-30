@@ -19,7 +19,7 @@ namespace CommandDotNet.Tests.FeatureTests.Help
                 .Verify(new Scenario
                 {
                     When = { Args = "Do -h" },
-                    Then = { OutputContainsTexts = { "Usage: testhost.dll Do [arguments]" } }
+                    Then = { OutputContainsTexts = { "Usage: dotnet testhost.dll Do [arguments]" } }
                 });
         }
 
@@ -30,7 +30,7 @@ namespace CommandDotNet.Tests.FeatureTests.Help
                 .Verify(new Scenario
                 {
                     When = {Args = "Do -h"},
-                    Then = { OutputContainsTexts = { "Usage: testhost.dll Do <arg1> <arg2> [<optional>]" } }
+                    Then = { OutputContainsTexts = { "Usage: dotnet testhost.dll Do <arg1> <arg2> [<optional>]" } }
                 });
         }
 
@@ -41,7 +41,7 @@ namespace CommandDotNet.Tests.FeatureTests.Help
                 .Verify(new Scenario
                 {
                     When = {Args = "Do2 -h"},
-                    Then = { OutputContainsTexts = { "Usage: testhost.dll Do2 [options] <arg1> <arg2> [<optional>]" } }
+                    Then = { OutputContainsTexts = { "Usage: dotnet testhost.dll Do2 [options] <arg1> <arg2> [<optional>]" } }
                 });
         }
 
@@ -52,7 +52,7 @@ namespace CommandDotNet.Tests.FeatureTests.Help
                 .Verify(new Scenario
                 {
                     When = { Args = "DefaultsInMixedOrder -h" },
-                    Then = { OutputContainsTexts = { "Usage: testhost.dll DefaultsInMixedOrder <arg1> <Arg2> <arg3> [<Arg4> <arg5>]" } }
+                    Then = { OutputContainsTexts = { "Usage: dotnet testhost.dll DefaultsInMixedOrder <arg1> <Arg2> <arg3> [<Arg4> <arg5>]" } }
                 });
         }
 

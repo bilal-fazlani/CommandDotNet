@@ -30,7 +30,7 @@ namespace CommandDotNet.Tests.CommandDotNet.DataAnnotations
                     When = {Args = "Save -h"},
                     Then =
                     {
-                        Output = @"Usage: testhost.dll Save [options] <Id> <Name>
+                        Output = @"Usage: dotnet testhost.dll Save [options] <Id> <Name>
 
 Arguments:
 
@@ -130,7 +130,7 @@ Options:
                             @"'Id' is required.
 'Name' is required.
 
-Usage: testhost.dll Save [options] <Id> <Name>"
+Usage: dotnet testhost.dll Save [options] <Id> <Name>"
                         }
                     }
                 });

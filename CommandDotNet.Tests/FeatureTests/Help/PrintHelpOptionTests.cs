@@ -18,7 +18,7 @@ namespace CommandDotNet.Tests.FeatureTests.Help
             var result = new AppRunner<App>(TestAppSettings.BasicHelp.Clone(s => s.Help.PrintHelpOption = true))
                 .RunInMem("Do -h".SplitArgs());
 
-            result.Console.AllText().Should().Be(@"Usage: testhost.dll Do [options]
+            result.Console.AllText().Should().Be(@"Usage: dotnet testhost.dll Do [options]
 
 Options:
   -h | --help  Show help information
@@ -31,7 +31,7 @@ Options:
             var result = new AppRunner<App>(TestAppSettings.DetailedHelp.Clone(s => s.Help.PrintHelpOption = true))
                 .RunInMem("Do -h".SplitArgs());
 
-            result.Console.AllText().Should().Be(@"Usage: testhost.dll Do [options]
+            result.Console.AllText().Should().Be(@"Usage: dotnet testhost.dll Do [options]
 
 Options:
 

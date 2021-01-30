@@ -24,7 +24,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
                 When = {Args = "Do -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll Do [options] <ModelArg> <paramArg> <paramArgList>
+                    Output = @"Usage: dotnet testhost.dll Do [options] <ModelArg> <paramArg> <paramArgList>
 
 Arguments:
   ModelArg
@@ -47,7 +47,7 @@ Options:
             new AppRunner<App>(DetailedHelp).Verify(new Scenario
             {
                 When = {Args = "Do -h"},
-                Then = { Output = @"Usage: testhost.dll Do [options] <ModelArg> <paramArg> <paramArgList>
+                Then = { Output = @"Usage: dotnet testhost.dll Do [options] <ModelArg> <paramArg> <paramArgList>
 
 Arguments:
 

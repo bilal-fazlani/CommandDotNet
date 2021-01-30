@@ -41,7 +41,7 @@ namespace CommandDotNet.Tests.FeatureTests.Help
             new AppRunner<WithoutAppMetadatName>(appSettings).Verify(new Scenario
             {
                 When = {Args = "-h"},
-                Then = { OutputContainsTexts = { "Usage: testhost.dll" } }
+                Then = { OutputContainsTexts = { "Usage: dotnet testhost.dll" } }
             });
         }
 

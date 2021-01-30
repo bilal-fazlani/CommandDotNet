@@ -26,7 +26,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
                 When = {Args = "ArgsDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ArgsDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll ArgsDefaults [options]
 
 Options:
   --boolArg
@@ -49,7 +49,7 @@ Options:
                 When = {Args = "ArgsDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ArgsDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll ArgsDefaults [options]
 
 Options:
 
@@ -80,7 +80,7 @@ Options:
                 When = {Args = "StructListDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll StructListDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll StructListDefaults [options]
 
 Options:
   --structListArg
@@ -97,7 +97,7 @@ Options:
                 When = {Args = "StructListDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll StructListDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll StructListDefaults [options]
 
 Options:
 
@@ -115,7 +115,7 @@ Options:
                 When = {Args = "EnumListDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll EnumListDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll EnumListDefaults [options]
 
 Options:
   --enumListArg
@@ -132,7 +132,7 @@ Options:
                 When = {Args = "EnumListDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll EnumListDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll EnumListDefaults [options]
 
 Options:
 
@@ -151,7 +151,7 @@ Options:
                 When = {Args = "ObjectListDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ObjectListDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll ObjectListDefaults [options]
 
 Options:
   --objectListArg
@@ -168,7 +168,7 @@ Options:
                 When = {Args = "ObjectListDefaults -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ObjectListDefaults [options]
+                    Output = @"Usage: dotnet testhost.dll ObjectListDefaults [options]
 
 Options:
 

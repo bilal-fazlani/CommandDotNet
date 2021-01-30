@@ -53,7 +53,7 @@ namespace CommandDotNet.Tests.FeatureTests.Arguments
                 When = {Args = "ArgsNoDefault -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ArgsNoDefault <BoolArg> <StringArg> <StructArg> <StructNArg> <EnumArg> <ObjectArg> <StringListArg>
+                    Output = @"Usage: dotnet testhost.dll ArgsNoDefault <BoolArg> <StringArg> <StructArg> <StructNArg> <EnumArg> <ObjectArg> <StringListArg>
 
 Arguments:
   BoolArg
@@ -76,7 +76,7 @@ Arguments:
                 When = {Args = "ArgsNoDefault -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ArgsNoDefault <BoolArg> <StringArg> <StructArg> <StructNArg> <EnumArg> <ObjectArg> <StringListArg>
+                    Output = @"Usage: dotnet testhost.dll ArgsNoDefault <BoolArg> <StringArg> <StructArg> <StructNArg> <EnumArg> <ObjectArg> <StringListArg>
 
 Arguments:
 
@@ -108,7 +108,7 @@ Arguments:
                 When = {Args = "StructListNoDefault -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll StructListNoDefault <StructListArg>
+                    Output = @"Usage: dotnet testhost.dll StructListNoDefault <StructListArg>
 
 Arguments:
   StructListArg
@@ -125,7 +125,7 @@ Arguments:
                 When = {Args = "StructListNoDefault -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll StructListNoDefault <StructListArg>
+                    Output = @"Usage: dotnet testhost.dll StructListNoDefault <StructListArg>
 
 Arguments:
 
@@ -143,7 +143,7 @@ Arguments:
                 When = {Args = "EnumListNoDefault -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll EnumListNoDefault <EnumListArg>
+                    Output = @"Usage: dotnet testhost.dll EnumListNoDefault <EnumListArg>
 
 Arguments:
   EnumListArg
@@ -160,7 +160,7 @@ Arguments:
                 When = {Args = "EnumListNoDefault -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll EnumListNoDefault <EnumListArg>
+                    Output = @"Usage: dotnet testhost.dll EnumListNoDefault <EnumListArg>
 
 Arguments:
 
@@ -179,7 +179,7 @@ Arguments:
                 When = {Args = "ObjectListNoDefault -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ObjectListNoDefault <ObjectListArg>
+                    Output = @"Usage: dotnet testhost.dll ObjectListNoDefault <ObjectListArg>
 
 Arguments:
   ObjectListArg
@@ -196,7 +196,7 @@ Arguments:
                 When = {Args = "ObjectListNoDefault -h"},
                 Then =
                 {
-                    Output = @"Usage: testhost.dll ObjectListNoDefault <ObjectListArg>
+                    Output = @"Usage: dotnet testhost.dll ObjectListNoDefault <ObjectListArg>
 
 Arguments:
 

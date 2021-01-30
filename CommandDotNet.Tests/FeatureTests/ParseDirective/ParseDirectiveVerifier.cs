@@ -42,7 +42,7 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
 
             var helpRequested = args == "-h" || args.Contains(" -h") || args.Contains("-h ");
             
-            ContainsIf(showsHelp, "Usage: testhost.dll ");
+            ContainsIf(showsHelp, "Usage: dotnet testhost.dll ");
             ContainsIf(helpRequested, "Help requested. Only token transformations are available.");
             ContainsIf(showsTokens, @"token transformations:
 
@@ -110,7 +110,7 @@ namespace CommandDotNet.Tests.FeatureTests.ParseDirective
             {
                 // help before token transformations
                 var consoleOut = result.Console.OutText();
-                var helpIndex = consoleOut.IndexOf("Usage: testhost.dll ");
+                var helpIndex = consoleOut.IndexOf("Usage: dotnet testhost.dll ");
                 var tokensIndex = consoleOut.IndexOf("token transformations:");
                 tokensIndex.Should().BeLessThan(helpIndex);
             }

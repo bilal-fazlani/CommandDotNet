@@ -1,4 +1,6 @@
-﻿namespace CommandDotNet
+﻿using CommandDotNet.ConsoleOnly;
+
+namespace CommandDotNet
 {
     public static class CommandContextExtensions
     {

@@ -19,9 +19,6 @@ namespace CommandDotNet
                     ? value
                     : map(value!);
 
-        internal static string[] SplitIntoLines(this string text, StringSplitOptions stringSplitOptions = StringSplitOptions.None) =>
-            text.Split(new[] { "\r\n", "\r", "\n" }, stringSplitOptions);
-
         internal static string Repeat(this string value, int count) => Enumerable.Repeat(value, count).ToCsv("");
     }
 }

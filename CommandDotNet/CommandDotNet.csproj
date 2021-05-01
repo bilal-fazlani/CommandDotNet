@@ -31,4 +31,7 @@
   <ItemGroup>
     <None Remove="CommandDotNet.csproj.DotSettings" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommandDotNet.ConsoleOnly\CommandDotNet.ConsoleOnly.csproj" />
+  </ItemGroup>
 </Project>

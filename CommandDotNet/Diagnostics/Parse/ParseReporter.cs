@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Extensions;
 using CommandDotNet.Tokens;
 

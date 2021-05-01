@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Extensions;
 using CommandDotNet.Logging;
-using CommandDotNet.Rendering;
 using CommandDotNet.Tokens;
 
 namespace CommandDotNet.Prompts
@@ -55,17 +55,17 @@ namespace CommandDotNet.Prompts
             // Using Console.TreatControlCAsInput, the request can be captured and returned
             // via the isCancellationRequested parameter.
 
-            if (_console.TreatControlCAsInput)
+            if (_console.In.TreatControlCAsInput)
             {
                 return PromptForValueRobustImpl(promptText, isPassword, isList, out isCancellationRequested);
             }
 
             Log.Debug("setting console.TreatControlCAsInput = true");
-            _console.TreatControlCAsInput = true;
+            _console.In.TreatControlCAsInput = true;
             using (new DisposableAction(() =>
             {
                 Log.Debug("setting console.TreatControlCAsInput = false");
-                _console.TreatControlCAsInput = false;
+                _console.In.TreatControlCAsInput = false;
             }))
             {
                 return PromptForValueRobustImpl(promptText, isPassword, isList, out isCancellationRequested);
@@ -96,7 +96,7 @@ namespace CommandDotNet.Prompts
 
             do
             {
-                var key = _console.ReadKey(true);
+                var key = _console.In.ReadKey(true);
 
                 if (key.IsCtrlC())
                 {
@@ -204,7 +204,7 @@ namespace CommandDotNet.Prompts
                 : new[] { value };
         }
 
-        private static void ClearCurrent(StringBuilder sb, IStandardStreamWriter consoleOut)
+        private static void ClearCurrent(StringBuilder sb, IConsoleWriter consoleOut)
         {
             if (sb.Length > 0)
             {

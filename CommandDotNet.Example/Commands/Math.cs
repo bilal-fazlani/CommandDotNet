@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CommandDotNet.Rendering;
+using CommandDotNet.ConsoleOnly;
 
 namespace CommandDotNet.Example.Commands
 {

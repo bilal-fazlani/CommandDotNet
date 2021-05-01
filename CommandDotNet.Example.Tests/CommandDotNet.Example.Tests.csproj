@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CommandDotNet.ConsoleOnly\CommandDotNet.ConsoleOnly.csproj" />
     <ProjectReference Include="..\CommandDotNet.Example\CommandDotNet.Example.csproj" />
     <ProjectReference Include="..\CommandDotNet.TestTools\CommandDotNet.TestTools.csproj" />
     <ProjectReference Include="..\CommandDotNet\CommandDotNet.csproj" />

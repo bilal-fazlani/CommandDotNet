@@ -3,8 +3,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Directives;
-using CommandDotNet.Rendering;
 using CommandDotNet.Tokens;
 
 namespace CommandDotNet.Diagnostics

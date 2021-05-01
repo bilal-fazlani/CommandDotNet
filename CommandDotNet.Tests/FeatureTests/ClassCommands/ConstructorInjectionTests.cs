@@ -1,5 +1,5 @@
 ﻿using System.Threading;
-using CommandDotNet.Rendering;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.TestTools;
 using FluentAssertions;
 using Xunit;

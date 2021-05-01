@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
 using Diag=CommandDotNet.Diagnostics;
 using CommandDotNet.TestTools.Scenarios;

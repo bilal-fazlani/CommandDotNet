@@ -1,5 +1,6 @@
 using System;
 using CommandDotNet.Builders;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Diagnostics.Parse;
 using CommandDotNet.Extensions;
 

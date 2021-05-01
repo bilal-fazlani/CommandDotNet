@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
 using CommandDotNet.Extensions;
 

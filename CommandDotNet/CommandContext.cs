@@ -1,10 +1,10 @@
 ﻿using System.Threading;
 using CommandDotNet.Builders;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Diagnostics.Parse;
 using CommandDotNet.Execution;
 using CommandDotNet.Extensions;
 using CommandDotNet.Parsing;
-using CommandDotNet.Rendering;
 using CommandDotNet.Tokens;
 using static System.Environment;
 

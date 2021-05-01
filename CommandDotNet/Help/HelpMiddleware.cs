@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CommandDotNet.Builders;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
 
 namespace CommandDotNet.Help

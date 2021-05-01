@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Extensions;
 
 namespace CommandDotNet.TestTools.Prompts

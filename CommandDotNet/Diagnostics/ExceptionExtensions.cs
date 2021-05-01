@@ -4,8 +4,8 @@ using System.Collections;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Extensions;
-using CommandDotNet.Rendering;
 
 namespace CommandDotNet.Diagnostics
 {

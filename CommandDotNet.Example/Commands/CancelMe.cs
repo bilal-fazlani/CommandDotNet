@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using CommandDotNet.Rendering;
+using CommandDotNet.ConsoleOnly;
 
 namespace CommandDotNet.Example.Commands
 {

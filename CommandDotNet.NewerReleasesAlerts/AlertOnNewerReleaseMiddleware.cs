@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using CommandDotNet.Builders;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
 using Semver;
 

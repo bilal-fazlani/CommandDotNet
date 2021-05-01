@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Prompts;
-using CommandDotNet.Rendering;
 
 namespace CommandDotNet.Example.Commands
 {

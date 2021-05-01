@@ -4,13 +4,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using CommandDotNet.ClassModeling;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Diagnostics;
 using CommandDotNet.Execution;
 using CommandDotNet.Extensions;
 using CommandDotNet.Help;
 using CommandDotNet.Logging;
 using CommandDotNet.Parsing;
-using CommandDotNet.Rendering;
 using CommandDotNet.Tokens;
 
 [assembly: InternalsVisibleTo("CommandDotNet.Tests")]

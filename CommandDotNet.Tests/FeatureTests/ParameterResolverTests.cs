@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
-using CommandDotNet.Rendering;
 using CommandDotNet.Tests.Utils;
 using CommandDotNet.TestTools;
 using CommandDotNet.TestTools.Scenarios;

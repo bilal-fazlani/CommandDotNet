@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using CommandDotNet.Builders;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
 using CommandDotNet.Extensions;
 using CommandDotNet.Help;
 using CommandDotNet.Parsing;
-using CommandDotNet.Rendering;
 using CommandDotNet.Tokens;
 
 namespace CommandDotNet

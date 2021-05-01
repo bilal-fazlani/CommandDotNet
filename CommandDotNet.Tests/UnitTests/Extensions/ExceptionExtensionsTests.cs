@@ -1,4 +1,5 @@
-﻿using CommandDotNet.Diagnostics;
+﻿using CommandDotNet.ConsoleOnly;
+using CommandDotNet.Diagnostics;
 using CommandDotNet.TestTools;
 using FluentAssertions;
 using Xunit;

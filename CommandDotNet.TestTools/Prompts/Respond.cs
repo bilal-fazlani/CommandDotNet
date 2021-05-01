@@ -1,7 +1,7 @@
 using System;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Extensions;
 using CommandDotNet.Prompts;
-using CommandDotNet.Rendering;
 
 namespace CommandDotNet.TestTools.Prompts
 {

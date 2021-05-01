@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using CommandDotNet.Rendering;
+using CommandDotNet.ConsoleOnly;
 using FluentValidation;
 using FluentValidation.Attributes;
 using Newtonsoft.Json;

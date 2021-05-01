@@ -1,4 +1,4 @@
-﻿using CommandDotNet.Rendering;
+﻿using CommandDotNet.ConsoleOnly;
 
 namespace CommandDotNet
 {

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyTitle>CommandDotNet.ConsoleOnly</AssemblyTitle>
+        <Description>Console interface to simplify testing and interfacing with other console libraries</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Remove="output\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Remove="output\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Remove="output\**" />
+    </ItemGroup>
+
+</Project>

@@ -168,6 +168,7 @@ The framework includes the following tools that can be used independently of the
 
 ### [TestConsole](https://github.com/bilal-fazlani/commanddotnet/blob/master/CommandDotNet.TestTools/TestConsole.cs)
 
+* covers all members of System.Console
 * capture output for assertions
 * provide piped input
 * handle ReadLine and ReadKey

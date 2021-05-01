@@ -1,5 +1,5 @@
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
-using CommandDotNet.Rendering;
 using CommandDotNet.TestTools.Scenarios;
 using FluentAssertions;
 using Xunit;

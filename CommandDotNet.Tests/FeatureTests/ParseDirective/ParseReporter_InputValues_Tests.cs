@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Extensions;
-using CommandDotNet.Rendering;
 using CommandDotNet.TestTools;
 using CommandDotNet.TestTools.Prompts;
 using CommandDotNet.TestTools.Scenarios;

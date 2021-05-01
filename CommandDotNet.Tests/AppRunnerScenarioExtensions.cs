@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
 using CommandDotNet.TestTools;
 using CommandDotNet.TestTools.Scenarios;

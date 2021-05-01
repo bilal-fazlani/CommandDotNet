@@ -11,6 +11,8 @@ Includes [test tools](TestTools/overview.md) used by the framework to test all f
 
 Modify and extend the functionality of the framework through configuration and middleware.
 
+The ConsoleOnly package provides an IConsole interface that can be used without the rest of the CommandDotNet framework.  This includes a SystemConsole and a TestConsole implementation to simplify testing.
+
 ## Credits 🎉
 
 Special thanks to [Drew Burlingame](https://github.com/drewburlingame) for continuous support and contributions

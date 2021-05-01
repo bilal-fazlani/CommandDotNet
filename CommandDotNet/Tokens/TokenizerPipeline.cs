@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
 using CommandDotNet.Extensions;
 using CommandDotNet.Logging;

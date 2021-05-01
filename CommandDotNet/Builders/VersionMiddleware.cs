@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
+using CommandDotNet.ConsoleOnly;
 using CommandDotNet.Execution;
-using CommandDotNet.Rendering;
 
 namespace CommandDotNet.Builders
 {

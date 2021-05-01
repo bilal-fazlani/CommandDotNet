@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace CommandDotNet.Prompts
+namespace CommandDotNet.ConsoleOnly
 {
-    internal static class ConsoleKeyInfoExtensions
+    public static class ConsoleKeyInfoExtensions
     {
-        internal static bool IsCtrlC(this ConsoleKeyInfo key)
+        public static bool IsCtrlC(this ConsoleKeyInfo key)
         {
             return key.Key == ConsoleKey.C && key.Modifiers.HasFlag(ConsoleModifiers.Control);
         }

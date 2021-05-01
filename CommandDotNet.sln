@@ -40,6 +40,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandDotNet.Example.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandDotNet.DataAnnotations", "CommandDotNet.DataAnnotations\CommandDotNet.DataAnnotations.csproj", "{558AA426-06D4-4FC9-B2E5-B6742F0A5D77}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandDotNet.Hosting", "CommandDotNet.Hosting\CommandDotNet.Hosting.csproj", "{969B52A2-8790-47C6-A624-AB7FA1383AE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -94,6 +96,14 @@ Global
 		{558AA426-06D4-4FC9-B2E5-B6742F0A5D77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{558AA426-06D4-4FC9-B2E5-B6742F0A5D77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{558AA426-06D4-4FC9-B2E5-B6742F0A5D77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{969B52A2-8790-47C6-A624-AB7FA1383AE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{969B52A2-8790-47C6-A624-AB7FA1383AE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{969B52A2-8790-47C6-A624-AB7FA1383AE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{969B52A2-8790-47C6-A624-AB7FA1383AE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1149E03F-FF07-448A-BB42-82876459B138}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1149E03F-FF07-448A-BB42-82876459B138}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1149E03F-FF07-448A-BB42-82876459B138}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1149E03F-FF07-448A-BB42-82876459B138}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

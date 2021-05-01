@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <AssemblyTitle>CommandDotNet.Hosting</AssemblyTitle>
+        <Description>Integrates Microsoft.Extensions.Hosting with CommandDotNet</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Remove="output\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Remove="output\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Remove="output\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.4" />
+        <PackageReference Include="Nullable" Version="1.2.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\CommandDotNet\CommandDotNet.csproj" />
+    </ItemGroup>
+
+</Project>
